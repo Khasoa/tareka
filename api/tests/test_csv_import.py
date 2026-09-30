@@ -28,9 +28,6 @@ def test_import_businesses(
         encoding="utf-8",
     )
 
-    imported = import_businesses(
-        db_session,
-        csv_file,
-    )
-
+    imported, errors = import_businesses(db_session, csv_file)
     assert imported == 1
+    assert errors == []

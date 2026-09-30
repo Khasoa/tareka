@@ -1,0 +1,7 @@
+name,slug,business_type,accepts_public_dropoff,county,materials,source_type,source_url
+Mr Green Africa,mr-green-africa,recycler,yes,Nairobi,plastic,website,https://mrgreenafrica.com
+Gjenge Makers,gjenge-makers,upcycler,no,Nairobi,plastic,website,https://gjengemakers.com
+TakaTaka Solutions,takataka-solutions,collector,yes,Nairobi,plastic,website,https://takatakasolutions.com
+Ecandi,ecandi,recycler,yes,Nairobi,plastic|paper|glass,website,https://ecandi.co.ke/
+Ecopost Kenya,ecopost-kenya,upcycler,no,Nairobi,plastic,website,https://ecopost.co.ke
+
