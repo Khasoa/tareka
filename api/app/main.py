@@ -4,8 +4,13 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.database import engine
+from app.modules.directory.reference_router import router as directory_router
+from app.modules.directory.router import router as business_router
 
 app = FastAPI(title="Tareka API")
+
+app.include_router(directory_router)
+app.include_router(business_router)
 
 app.add_middleware(
     CORSMiddleware,
