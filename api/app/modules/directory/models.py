@@ -33,6 +33,11 @@ class Business(Base):
     phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     email: Mapped[str | None] = mapped_column(String(320), nullable=True)
 
+    editorial_consent: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    image_consent: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     created_at: Mapped[datetime] = mapped_column(
@@ -63,9 +68,6 @@ class Location(Base):
     business_id: Mapped[int] = mapped_column(
         ForeignKey("businesses.id"), nullable=False
     )
-
-    # No unique constraint on county — a location belongs to one business,
-    # and many businesses share the same county.
     county: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     town: Mapped[str | None] = mapped_column(String(100), nullable=True)
     address: Mapped[str | None] = mapped_column(String(300), nullable=True)
@@ -111,7 +113,6 @@ class VerificationRecord(Base):
     business_id: Mapped[int] = mapped_column(
         ForeignKey("businesses.id"), nullable=False
     )
-
     status: Mapped[str] = mapped_column(String(30), nullable=False)
     verified_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False

@@ -16,6 +16,17 @@ type DirectoryFiltersProps = {
   onShowUpcyclers: () => void;
 };
 
+const BUSINESS_TYPES = [
+  { value: "", label: "All" },
+  { value: "recycler", label: "Recycler" },
+  { value: "upcycler", label: "Upcycler" },
+  { value: "collector", label: "Collector" },
+  { value: "mixed", label: "Mixed" },
+];
+
+const selectClassName =
+  "w-full rounded-lg border border-[var(--color-border)] bg-white p-2 text-sm text-[var(--color-ink)] outline-none transition-colors hover:border-[var(--color-accent-text)] focus:border-[var(--color-accent-text)] focus:ring-2 focus:ring-[var(--color-accent-soft)] focus-visible:outline-none";
+
 export default function DirectoryFilters({
   businessType,
   dropoff,
@@ -30,53 +41,68 @@ export default function DirectoryFilters({
   onShowUpcyclers,
 }: DirectoryFiltersProps) {
   return (
-    <div>
-      <div className="mb-4">
-        <button
-          type="button"
-          onClick={onShowUpcyclers}
-          className="rounded-full border px-4 py-2 text-sm font-medium"
-        >
-          ✨ Show me what&apos;s being made
-        </button>
+    <div className="space-y-6">
+      <div>
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-muted)]">
+          Browse by
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap gap-2">
+            {BUSINESS_TYPES.map((t) => {
+              const selected = businessType === t.value;
+              return (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => onBusinessTypeChange(t.value)}
+                  aria-pressed={selected}
+                  className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
+                    selected
+                      ? "border-[var(--color-ink)] bg-[var(--color-ink)] font-medium text-white"
+                      : "border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-accent-text)] hover:text-[var(--color-ink)]"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={onShowUpcyclers}
+            aria-pressed={businessType === "upcycler"}
+            className={`ml-auto rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+              businessType === "upcycler"
+                ? "border-[var(--color-ink)] bg-[var(--color-ink)] text-white"
+                : "border-[var(--color-border-strong)] text-[var(--color-ink)] hover:bg-[var(--color-accent-soft)]"
+            }`}
+          >
+            Show me what&apos;s being made
+          </button>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <label className="flex flex-col gap-2">
-          <span className="font-medium">Business type</span>
-          <select
-            value={businessType}
-            onChange={(event) => onBusinessTypeChange(event.target.value)}
-            className="rounded border p-2"
-          >
-            <option value="">All</option>
-            <option value="recycler">Recycler</option>
-            <option value="upcycler">Upcycler</option>
-            <option value="collector">Collector</option>
-            <option value="mixed">Mixed</option>
-          </select>
-        </label>
-
-        <label className="flex flex-col gap-2">
-          <span className="font-medium">Public drop-off</span>
+      <div>
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-muted)]">
+          Refine
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
           <select
             value={dropoff}
             onChange={(event) => onDropoffChange(event.target.value)}
-            className="rounded border p-2"
+            className={selectClassName}
           >
-            <option value="">All</option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
+            <option value="">Public drop-off: All</option>
+            <option value="yes">Accepts drop-off</option>
+            <option value="no">No public drop-off</option>
             <option value="unknown">Unknown</option>
           </select>
-        </label>
 
-        <label className="flex flex-col gap-2">
-          <span className="font-medium">County</span>
           <select
             value={county}
             onChange={(event) => onCountyChange(event.target.value)}
-            className="rounded border p-2"
+            className={selectClassName}
           >
             <option value="">All counties</option>
             {counties.map((c) => (
@@ -85,14 +111,11 @@ export default function DirectoryFilters({
               </option>
             ))}
           </select>
-        </label>
 
-        <label className="flex flex-col gap-2">
-          <span className="font-medium">Material</span>
           <select
             value={materialId}
             onChange={(event) => onMaterialIdChange(event.target.value)}
-            className="rounded border p-2"
+            className={selectClassName}
           >
             <option value="">All materials</option>
             {materials.map((m) => (
@@ -101,7 +124,7 @@ export default function DirectoryFilters({
               </option>
             ))}
           </select>
-        </label>
+        </div>
       </div>
     </div>
   );

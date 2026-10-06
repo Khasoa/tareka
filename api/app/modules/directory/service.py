@@ -20,12 +20,12 @@ def list_businesses(
             selectinload(Business.locations),
             selectinload(Business.materials).selectinload(BusinessMaterial.material),
         )
-        .where(Business.is_active.is_(True))
+        .where(Business.is_active.is_(True), Business.verification_status == "verified")
     )
     count_query = (
         select(func.count(func.distinct(Business.id)))
         .select_from(Business)
-        .where(Business.is_active.is_(True))
+        .where(Business.is_active.is_(True), Business.verification_status == "verified")
     )
 
     if county:
@@ -52,10 +52,9 @@ def list_businesses(
             Business.accepts_public_dropoff == accepts_public_dropoff
         )
 
-    # Verified listings first, then alphabetical within each group.
-    query = query.order_by(
-        (Business.verification_status == "verified").desc(), Business.name
-    )
+    # Alphabetical — every result here is already verified, so this is just
+    # a readable tiebreaker, not a trust signal anymore.
+    query = query.order_by(Business.name)
 
     offset = (page - 1) * page_size
     businesses = db.scalars(query.offset(offset).limit(page_size)).unique().all()
@@ -71,7 +70,11 @@ def get_business_by_slug(db: Session, slug: str) -> Business | None:
             selectinload(Business.materials).selectinload(BusinessMaterial.material),
             selectinload(Business.verification_records),
         )
-        .where(Business.slug == slug, Business.is_active.is_(True))
+        .where(
+            Business.slug == slug,
+            Business.is_active.is_(True),
+            Business.verification_status == "verified",
+        )
     )
     return db.scalars(query).unique().first()
 

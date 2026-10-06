@@ -11,7 +11,7 @@ from app.main import app
 
 
 def _test_database_url() -> str:
-  
+
     env_url = os.environ.get("DATABASE_URL")
     if env_url:
         return env_url

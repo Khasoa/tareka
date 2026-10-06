@@ -15,6 +15,7 @@ def test_list_businesses(client, db_session):
         business_type="recycler",
         accepts_public_dropoff="yes",
         description="Test recycling business.",
+        verification_status="verified",
     )
     business.materials.append(BusinessMaterial(material=plastic))
     business.locations.append(Location(county="Nairobi", town="Nairobi"))
@@ -30,20 +31,20 @@ def test_list_businesses(client, db_session):
     assert data["items"][0]["name"] == "Green Test Recycler"
     assert data["items"][0]["business_type"] == "recycler"
 
+
 def test_get_business_by_slug(client, db_session):
     business = Business(
         name="Test Upcycler Kenya",
         slug="test-upcycler-kenya",
         business_type="upcycler",
         accepts_public_dropoff="no",
+        verification_status="verified",
     )
 
     db_session.add(business)
     db_session.commit()
 
-    response = client.get(
-        "/businesses/test-upcycler-kenya"
-    )
+    response = client.get("/businesses/test-upcycler-kenya")
 
     assert response.status_code == 200
 
@@ -54,11 +55,28 @@ def test_get_business_by_slug(client, db_session):
 
 
 def test_get_missing_business_returns_404(client):
-    response = client.get(
-        "/businesses/does-not-exist"
-    )
+    response = client.get("/businesses/does-not-exist")
 
     assert response.status_code == 404
+
+
+def test_unverified_business_not_publicly_visible(client, db_session):
+    business = Business(
+        name="Pending Business",
+        slug="pending-business",
+        business_type="recycler",
+        accepts_public_dropoff="unknown",
+        verification_status="unverified",
+    )
+    db_session.add(business)
+    db_session.commit()
+
+    list_response = client.get("/businesses")
+    assert list_response.json()["total"] == 0
+
+    detail_response = client.get("/businesses/pending-business")
+    assert detail_response.status_code == 404
+
 
 def test_filter_businesses_by_business_type(
     client,
@@ -71,21 +89,21 @@ def test_filter_businesses_by_business_type(
                 slug="test-recycler",
                 business_type="recycler",
                 accepts_public_dropoff="yes",
+                verification_status="verified",
             ),
             Business(
                 name="Test Collector",
                 slug="test-collector",
                 business_type="collector",
                 accepts_public_dropoff="no",
+                verification_status="verified",
             ),
         ]
     )
 
     db_session.commit()
 
-    response = client.get(
-        "/businesses?business_type=collector"
-    )
+    response = client.get("/businesses?business_type=collector")
 
     assert response.status_code == 200
 
@@ -93,6 +111,7 @@ def test_filter_businesses_by_business_type(
 
     assert data["total"] == 1
     assert data["items"][0]["business_type"] == "collector"
+
 
 def test_filter_businesses_by_dropoff(
     client,
@@ -105,21 +124,21 @@ def test_filter_businesses_by_dropoff(
                 slug="dropoff-business",
                 business_type="recycler",
                 accepts_public_dropoff="yes",
+                verification_status="verified",
             ),
             Business(
                 name="No Dropoff Business",
                 slug="no-dropoff-business",
                 business_type="collector",
                 accepts_public_dropoff="no",
+                verification_status="verified",
             ),
         ]
     )
 
     db_session.commit()
 
-    response = client.get(
-        "/businesses?accepts_public_dropoff=yes"
-    )
+    response = client.get("/businesses?accepts_public_dropoff=yes")
 
     assert response.status_code == 200
 
@@ -127,6 +146,7 @@ def test_filter_businesses_by_dropoff(
 
     assert data["total"] == 1
     assert data["items"][0]["name"] == "Dropoff Business"
+
 
 def test_filter_businesses_by_material(
     client,
@@ -142,18 +162,15 @@ def test_filter_businesses_by_material(
         slug="plastic-recycler",
         business_type="recycler",
         accepts_public_dropoff="yes",
+        verification_status="verified",
     )
 
-    business.materials.append(
-        BusinessMaterial(material=plastic)
-    )
+    business.materials.append(BusinessMaterial(material=plastic))
 
     db_session.add(business)
     db_session.commit()
 
-    response = client.get(
-        f"/businesses?material_id={plastic.id}"
-    )
+    response = client.get(f"/businesses?material_id={plastic.id}")
 
     assert response.status_code == 200
 
@@ -162,6 +179,7 @@ def test_filter_businesses_by_material(
     assert data["total"] == 1
     assert data["items"][0]["name"] == "Plastic Recycler"
 
+
 def test_business_pagination(client, db_session):
     businesses = [
         Business(
@@ -169,6 +187,7 @@ def test_business_pagination(client, db_session):
             slug=f"test-business-{number}",
             business_type="recycler",
             accepts_public_dropoff="unknown",
+            verification_status="verified",
         )
         for number in range(1, 6)
     ]
@@ -176,9 +195,7 @@ def test_business_pagination(client, db_session):
     db_session.add_all(businesses)
     db_session.commit()
 
-    response = client.get(
-        "/businesses?page=1&page_size=2"
-    )
+    response = client.get("/businesses?page=1&page_size=2")
 
     assert response.status_code == 200
 

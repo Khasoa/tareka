@@ -4,32 +4,32 @@ import { useEffect, useState } from "react";
 
 import BusinessCard from "@/components/BusinessCard";
 import DirectoryFilters from "@/components/DirectoryFilters";
+import Header from "@/components/Header";
+import Hero from "@/components/Hero";
 import { getBusinesses, getCounties, getMaterials, type Business } from "@/lib/api";
 
 type MaterialOption = { id: number; name: string; slug: string; parent_id: number | null };
-
-type Status =
-  | { kind: "loading" }
-  | { kind: "error"; message: string }
-  | { kind: "ready" };
+type Status = { kind: "loading" } | { kind: "error"; message: string } | { kind: "ready" };
 
 export default function DirectoryPage() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [total, setTotal] = useState(0);
   const [status, setStatus] = useState<Status>({ kind: "loading" });
 
   const [businessType, setBusinessType] = useState("");
   const [dropoff, setDropoff] = useState("");
   const [county, setCounty] = useState("");
   const [materialId, setMaterialId] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [counties, setCounties] = useState<string[]>([]);
   const [materials, setMaterials] = useState<MaterialOption[]>([]);
 
-  // Wraps a filter setter so the loading state is set synchronously in the
-  // event handler that actually changed something — not inside an effect.
   function withLoading<T>(setter: (value: T) => void) {
     return (value: T) => {
       setStatus({ kind: "loading" });
+      setPage(1);
       setter(value);
     };
   }
@@ -39,16 +39,13 @@ export default function DirectoryPage() {
   const handleCountyChange = withLoading(setCounty);
   const handleMaterialIdChange = withLoading(setMaterialId);
 
-  // Reference data — fetched once, not hardcoded in the frontend.
   useEffect(() => {
     getCounties().then(setCounties).catch(() => setCounties([]));
     getMaterials().then(setMaterials).catch(() => setMaterials([]));
   }, []);
 
-  // Businesses — refetched whenever any filter changes. No synchronous
-  // setState here; status transitions only happen after the fetch settles.
   useEffect(() => {
-    const params = new URLSearchParams({ page: "1", page_size: "20" });
+    const params = new URLSearchParams({ page: String(page), page_size: "15" });
     if (businessType) params.set("business_type", businessType);
     if (dropoff) params.set("accepts_public_dropoff", dropoff);
     if (county) params.set("county", county);
@@ -57,19 +54,19 @@ export default function DirectoryPage() {
     getBusinesses(params)
       .then((data) => {
         setBusinesses(data.items);
+        setTotal(data.total);
+        setTotalPages(data.total_pages);
         setStatus({ kind: "ready" });
       })
-      .catch(() =>
-        setStatus({ kind: "error", message: "We couldn't load the directory right now." })
-      );
-  }, [businessType, dropoff, county, materialId]);
+      .catch(() => setStatus({ kind: "error", message: "We couldn't load the directory right now." }));
+  }, [businessType, dropoff, county, materialId, page]);
 
   return (
-    <main className="min-h-screen p-10">
-      <h1 className="text-4xl font-bold">Recycling Directory</h1>
-      <p className="mt-4">Find recycling and waste-management businesses across Kenya.</p>
+    <>
+      <Header />
+      <Hero total={total} countiesCount={counties.length} />
 
-      <div className="mt-8">
+      <main id="directory" className="mx-auto max-w-6xl px-6 pb-16">
         <DirectoryFilters
           businessType={businessType}
           dropoff={dropoff}
@@ -83,23 +80,48 @@ export default function DirectoryPage() {
           onMaterialIdChange={handleMaterialIdChange}
           onShowUpcyclers={() => handleBusinessTypeChange("upcycler")}
         />
-      </div>
 
-      {status.kind === "loading" && <p className="mt-8">Finding recycling businesses...</p>}
+        <div className="mt-8">
+          {status.kind === "loading" && (
+            <p className="text-[var(--color-muted)]">Finding recycling businesses...</p>
+          )}
+          {status.kind === "error" && <p className="text-[var(--color-muted)]">{status.message}</p>}
+          {status.kind === "ready" && businesses.length === 0 && (
+            <p className="text-[var(--color-muted)]">No businesses match these filters.</p>
+          )}
+          {status.kind === "ready" && businesses.length > 0 && (
+            <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {businesses.map((business, i) => (
+                <BusinessCard key={business.id} business={business} index={(page - 1) * 15 + i} />
+              ))}
+            </section>
+          )}
+        </div>
 
-      {status.kind === "error" && <p className="mt-8">{status.message}</p>}
-
-      {status.kind === "ready" && businesses.length === 0 && (
-        <p className="mt-8">No businesses match these filters.</p>
-      )}
-
-      {status.kind === "ready" && businesses.length > 0 && (
-        <section className="mt-8 grid gap-6 md:grid-cols-2">
-          {businesses.map((business) => (
-            <BusinessCard key={business.id} business={business} />
-          ))}
-        </section>
-      )}
-    </main>
+        {status.kind === "ready" && totalPages > 1 && (
+          <div className="mt-10 flex items-center justify-center gap-4 text-sm">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+              className="disabled:opacity-30"
+            >
+              ← Previous
+            </button>
+            <span className="text-[var(--color-muted)]">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className="disabled:opacity-30"
+            >
+              Next →
+            </button>
+          </div>
+        )}
+      </main>
+    </>
   );
 }
