@@ -1,12 +1,14 @@
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from app.core.config import settings
 from app.core.deps import DbSession
 from app.core.rate_limit import limiter
+from app.core.validation import validate_http_url
 from app.modules.admin.audit import record_audit
 from app.modules.admin.models import AdminSession, AdminUser
 from app.modules.admin.security import (
@@ -31,18 +33,18 @@ router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 
 class LoginRequest(BaseModel):
-    email: str
-    password: str
+    email: str = Field(min_length=3, max_length=200)
+    password: str = Field(min_length=1, max_length=1024)
 
 
 class PublishSuggestionRequest(BaseModel):
-    slug: str
+    slug: str = Field(min_length=2, max_length=220)
     business_type: str
     accepts_public_dropoff: str
-    description: str
-    town: str | None = None
-    website_url: str | None = None
-    phone: str | None = None
+    description: str = Field(min_length=1, max_length=5000)
+    town: str | None = Field(default=None, max_length=100)
+    website_url: str | None = Field(default=None, max_length=500)
+    phone: str | None = Field(default=None, max_length=50)
     material_ids: list[int] = Field(default_factory=list)
 
 
@@ -53,34 +55,40 @@ def login(
     body: LoginRequest,
     response: Response,
     db: DbSession,
-):
-    admin = db.scalar(select(AdminUser).where(AdminUser.email == body.email))
+) -> dict[str, str]:
+    email = body.email.strip().lower()
+    admin = db.scalar(select(AdminUser).where(AdminUser.email == email))
+    now = datetime.now(UTC)
 
-    if admin and admin.locked_until and admin.locked_until > datetime.now(UTC):
-        raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Account temporarily locked",
-        )
+    # Use a generic error for unknown emails and incorrect passwords.
+    if admin is None:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    if not admin or not verify_password(body.password, admin.password_hash):
-        if admin:
-            admin.failed_attempts += 1
+    if admin.locked_until is not None:
+        locked_until = admin.locked_until
+        if locked_until.tzinfo is None:
+            locked_until = locked_until.replace(tzinfo=UTC)
 
-            if admin.failed_attempts >= MAX_FAILED_ATTEMPTS:
-                admin.locked_until = datetime.now(UTC) + LOCKOUT_DURATION
+        if locked_until > now:
+            raise HTTPException(
+                status_code=423,
+                detail="Account temporarily locked. Try again later.",
+            )
 
-            db.commit()
+    if not verify_password(body.password, admin.password_hash):
+        admin.failed_attempts += 1
 
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-        )
+        if admin.failed_attempts >= MAX_FAILED_ATTEMPTS:
+            admin.locked_until = now + LOCKOUT_DURATION
+
+        db.commit()
+        raise HTTPException(status_code=401, detail="Invalid email or password")
 
     admin.failed_attempts = 0
     admin.locked_until = None
 
+    # Store only the hash of the random session token in the database.
     token = generate_session_token()
-
     db.add(
         AdminSession(
             admin_id=admin.id,
@@ -88,7 +96,6 @@ def login(
             expires_at=session_expiry(),
         )
     )
-
     db.commit()
 
     response.set_cookie(
@@ -98,8 +105,8 @@ def login(
         secure=settings.environment == "production",
         samesite="lax",
         max_age=12 * 60 * 60,
+        path="/",
     )
-
     return {"status": "ok"}
 
 
@@ -108,18 +115,29 @@ def logout(
     response: Response,
     db: DbSession,
     admin: AdminUser = Depends(require_admin),
-):
-    db.query(AdminSession).filter(AdminSession.admin_id == admin.id).delete()
+) -> dict[str, str]:
+    sessions = db.scalars(
+        select(AdminSession).where(AdminSession.admin_id == admin.id)
+    ).all()
+
+    for session in sessions:
+        db.delete(session)
 
     db.commit()
-
-    response.delete_cookie("tareka_session")
-
+    response.delete_cookie(
+        key="tareka_session",
+        path="/",
+        secure=settings.environment == "production",
+        httponly=True,
+        samesite="lax",
+    )
     return {"status": "ok"}
 
 
 @router.get("/me")
-def me(admin: AdminUser = Depends(require_admin)):
+def get_current_admin(
+    admin: AdminUser = Depends(require_admin),
+) -> dict[str, str]:
     return {"email": admin.email}
 
 
@@ -128,21 +146,18 @@ def verify_business(
     business_id: int,
     db: DbSession,
     admin: AdminUser = Depends(require_admin),
-):
+) -> dict[str, str]:
     business = db.get(Business, business_id)
-
-    if not business:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Business not found",
-        )
-
-    before = {
-        "verification_status": business.verification_status,
-        "last_verified_at": str(business.last_verified_at),
-    }
+    if business is None:
+        raise HTTPException(status_code=404, detail="Business not found")
 
     now = datetime.now(UTC)
+    before = {
+        "verification_status": business.verification_status,
+        "last_verified_at": (
+            business.last_verified_at.isoformat() if business.last_verified_at else None
+        ),
+    }
 
     business.verification_status = "verified"
     business.last_verified_at = now
@@ -153,30 +168,26 @@ def verify_business(
             status="verified",
             verified_at=now,
             source_type="admin_research",
-            notes="Verified via admin panel",
+            source_url=business.source_url,
+            notes="Verified by an administrator.",
         )
     )
 
-    db.flush()
-
-    after = {
-        "verification_status": business.verification_status,
-        "last_verified_at": str(business.last_verified_at),
-    }
-
     record_audit(
         db,
-        admin.id,
-        "VERIFY_BUSINESS",
-        "business",
-        business.id,
-        before,
-        after,
+        admin_id=admin.id,
+        action="verify_business",
+        entity="business",
+        entity_id=business.id,
+        before=before,
+        after={
+            "verification_status": "verified",
+            "last_verified_at": now.isoformat(),
+        },
     )
 
     db.commit()
-
-    return {"status": "ok"}
+    return {"status": "verified"}
 
 
 @router.post("/suggestions/{suggestion_id}/publish")
@@ -185,92 +196,150 @@ def publish_suggestion(
     body: PublishSuggestionRequest,
     db: DbSession,
     admin: AdminUser = Depends(require_admin),
-):
+) -> dict[str, int | str]:
     suggestion = db.get(BusinessSuggestion, suggestion_id)
+    if suggestion is None:
+        raise HTTPException(status_code=404, detail="Suggestion not found")
 
-    if not suggestion or suggestion.status == "published":
+    if suggestion.status != "new":
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Suggestion not found or already published",
+            status_code=409,
+            detail="Only new suggestions can be published.",
         )
 
-    materials = []
-
-    if body.material_ids:
-        materials = list(
-            db.scalars(select(Material).where(Material.id.in_(body.material_ids))).all()
+    slug = body.slug.strip().lower()
+    if db.scalar(select(Business).where(Business.slug == slug)) is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="A business with this slug already exists.",
         )
 
-        if len(materials) != len(set(body.material_ids)):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="One or more material IDs do not exist",
-            )
+    if body.business_type not in {"recycler", "upcycler", "collector", "mixed"}:
+        raise HTTPException(status_code=422, detail="Invalid business type.")
+
+    if body.accepts_public_dropoff not in {"yes", "no", "unknown"}:
+        raise HTTPException(status_code=422, detail="Invalid drop-off value.")
+
+    website_url = None
+    try:
+        website_url = validate_http_url(body.website_url)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    material_ids = set(body.material_ids)
+    materials = (
+        list(db.scalars(select(Material).where(Material.id.in_(material_ids))).all())
+        if material_ids
+        else []
+    )
+
+    if len(materials) != len(material_ids):
+        raise HTTPException(
+            status_code=422,
+            detail="One or more selected materials do not exist.",
+        )
 
     now = datetime.now(UTC)
-
     business = Business(
         name=suggestion.name,
-        slug=body.slug,
+        slug=slug,
         business_type=body.business_type,
         accepts_public_dropoff=body.accepts_public_dropoff,
-        description=body.description,
-        website_url=body.website_url,
-        phone=body.phone,
+        description=body.description.strip(),
+        website_url=website_url,
+        phone=(body.phone or suggestion.phone or "").strip() or None,
         source_type="admin_research",
         source_url=suggestion.source_url,
         verification_status="verified",
         last_verified_at=now,
     )
 
-    db.add(business)
-    db.flush()
+    try:
+        db.add(business)
+        db.flush()
 
-    db.add(
-        Location(
-            business_id=business.id,
-            county=suggestion.county,
-            town=body.town,
-        )
-    )
-
-    for material in materials:
         db.add(
-            BusinessMaterial(
+            Location(
                 business_id=business.id,
-                material_id=material.id,
+                county=suggestion.county,
+                town=(body.town or "").strip() or None,
             )
         )
 
-    db.add(
-        VerificationRecord(
-            business_id=business.id,
-            status="verified",
-            verified_at=now,
-            source_type="admin_research",
-            source_url=suggestion.source_url,
-            notes="Published from suggestion",
-        )
-    )
+        for material in materials:
+            db.add(
+                BusinessMaterial(
+                    business_id=business.id,
+                    material_id=material.id,
+                )
+            )
 
-    suggestion.status = "published"
+        db.add(
+            VerificationRecord(
+                business_id=business.id,
+                status="verified",
+                verified_at=now,
+                source_type="admin_research",
+                source_url=suggestion.source_url,
+                notes="Published after administrator research and review.",
+            )
+        )
+
+        suggestion.status = "published"
+
+        record_audit(
+            db,
+            admin_id=admin.id,
+            action="publish_suggestion",
+            entity="business_suggestion",
+            entity_id=suggestion.id,
+            before={"status": "new"},
+            after={
+                "status": "published",
+                "business_id": business.id,
+                "business_slug": slug,
+            },
+        )
+
+        db.commit()
+        return {"status": "published", "business_id": business.id}
+
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="The business could not be published because it conflicts "
+            "with an existing record.",
+        ) from exc
+
+
+@router.post("/suggestions/{suggestion_id}/reject")
+def reject_suggestion(
+    suggestion_id: int,
+    db: DbSession,
+    admin: AdminUser = Depends(require_admin),
+) -> dict[str, str]:
+    suggestion = db.get(BusinessSuggestion, suggestion_id)
+    if suggestion is None:
+        raise HTTPException(status_code=404, detail="Suggestion not found")
+
+    if suggestion.status != "new":
+        raise HTTPException(
+            status_code=409,
+            detail="Only new suggestions can be rejected.",
+        )
+
+    suggestion.status = "rejected"
 
     record_audit(
         db,
-        admin.id,
-        "PUBLISH_SUGGESTION",
-        "business",
-        business.id,
-        None,
-        {
-            "slug": business.slug,
-            "source_suggestion_id": suggestion.id,
-        },
+        admin_id=admin.id,
+        action="reject_suggestion",
+        entity="business_suggestion",
+        entity_id=suggestion.id,
+        before={"status": "new"},
+        after={"status": "rejected"},
     )
 
     db.commit()
-
-    return {
-        "status": "ok",
-        "business_id": business.id,
-    }
+    return {"status": "rejected"}

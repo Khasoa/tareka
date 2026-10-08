@@ -33,9 +33,10 @@ class Business(Base):
     phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     email: Mapped[str | None] = mapped_column(String(320), nullable=True)
 
-    editorial_consent: Mapped[bool] = mapped_column(
+    content_use_consent: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False
     )
+
     image_consent: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
