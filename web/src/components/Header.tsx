@@ -57,12 +57,13 @@ export default function Header() {
                 in motion. Listing is free; every submission is reviewed, and each
                 business&apos;s information is verified before it&apos;s marked as such.
               </p>
-              <a
-                href="mailto:hello@tareka.co"
+              <Link
+                href="/suggest"
+                onClick={closeMenu}
                 className="mt-3 inline-block text-sm font-medium underline decoration-[#B9E4C4] decoration-[3px] underline-offset-4"
               >
                 Suggest a business →
-              </a>
+              </Link>
             </div>
 
             <div className="hidden bg-[var(--color-border)] sm:block" />
