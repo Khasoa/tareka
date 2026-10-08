@@ -45,6 +45,13 @@ export default function Footer() {
                 Directory
               </Link>
 
+              <Link
+                href="/suggest"
+                className="text-[var(--color-ink)] underline decoration-[#B9E4C4] decoration-[3px] underline-offset-4 transition-colors hover:text-[var(--color-accent-text)]"
+              >
+                Suggest a business
+              </Link>
+
               <a
                 href="https://www.linkedin.com/"
                 target="_blank"
