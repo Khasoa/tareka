@@ -6,13 +6,26 @@ from app.modules.admin.security import hash_password
 
 
 def run() -> None:
-    email = input("Admin email: ").strip()
-    password = getpass.getpass("Admin password: ")
+    email = input("Admin email: ").strip().lower()
+
+    if not email or "@" not in email or len(email) > 200:
+        print("Enter a valid admin email address.")
+        return
+
+    password = getpass.getpass("Admin password (minimum 12 characters): ")
+    if len(password) < 12:
+        print("Password must be at least 12 characters.")
+        return
+
+    confirmation = getpass.getpass("Confirm admin password: ")
+    if password != confirmation:
+        print("Passwords do not match.")
+        return
 
     db = SessionLocal()
-
     try:
-        if db.query(AdminUser).filter_by(email=email).first():
+        existing = db.query(AdminUser).filter_by(email=email).first()
+        if existing:
             print("An admin with that email already exists.")
             return
 
@@ -24,6 +37,7 @@ def run() -> None:
         )
         db.commit()
         print("Admin created.")
+
     finally:
         db.close()
 

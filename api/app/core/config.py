@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     database_url: str
     secret_key: str
     environment: str = "development"
+    frontend_origin: str = "http://localhost:3000"
 
     model_config = SettingsConfigDict(
         env_file=".env",
