@@ -7,11 +7,11 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 from app.core.database import Base, get_db
+from app.core.rate_limit import limiter
 from app.main import app
 
 
 def _test_database_url() -> str:
-
     env_url = os.environ.get("DATABASE_URL")
     if env_url:
         return env_url
@@ -23,6 +23,11 @@ TEST_DATABASE_URL = _test_database_url()
 
 engine = create_engine(TEST_DATABASE_URL)
 TestingSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limiter():
+    limiter._storage.reset()
 
 
 @pytest.fixture

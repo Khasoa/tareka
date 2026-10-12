@@ -1,9 +1,15 @@
+from datetime import UTC, datetime, timedelta
+
 from app.modules.directory.models import (
     Business,
     BusinessMaterial,
     Location,
     Material,
 )
+
+
+def _recent_verification() -> datetime:
+    return datetime.now(UTC)
 
 
 def test_list_businesses(client, db_session):
@@ -16,6 +22,7 @@ def test_list_businesses(client, db_session):
         accepts_public_dropoff="yes",
         description="Test recycling business.",
         verification_status="verified",
+        last_verified_at=_recent_verification(),
     )
     business.materials.append(BusinessMaterial(material=plastic))
     business.locations.append(Location(county="Nairobi", town="Nairobi"))
@@ -39,6 +46,7 @@ def test_get_business_by_slug(client, db_session):
         business_type="upcycler",
         accepts_public_dropoff="no",
         verification_status="verified",
+        last_verified_at=_recent_verification(),
     )
 
     db_session.add(business)
@@ -78,6 +86,47 @@ def test_unverified_business_not_publicly_visible(client, db_session):
     assert detail_response.status_code == 404
 
 
+def test_expired_business_not_publicly_visible(client, db_session):
+    business = Business(
+        name="Expired Business",
+        slug="expired-business",
+        business_type="recycler",
+        accepts_public_dropoff="yes",
+        verification_status="verified",
+        last_verified_at=datetime.now(UTC) - timedelta(days=366),
+    )
+    db_session.add(business)
+    db_session.commit()
+
+    list_response = client.get("/businesses")
+    assert list_response.status_code == 200
+    assert list_response.json()["total"] == 0
+    assert list_response.json()["items"] == []
+
+    detail_response = client.get("/businesses/expired-business")
+    assert detail_response.status_code == 404
+
+
+def test_verified_business_without_verification_timestamp_is_hidden(client, db_session):
+    business = Business(
+        name="Missing Timestamp Business",
+        slug="missing-timestamp-business",
+        business_type="recycler",
+        accepts_public_dropoff="yes",
+        verification_status="verified",
+        last_verified_at=None,
+    )
+    db_session.add(business)
+    db_session.commit()
+
+    list_response = client.get("/businesses")
+    assert list_response.status_code == 200
+    assert list_response.json()["total"] == 0
+
+    detail_response = client.get("/businesses/missing-timestamp-business")
+    assert detail_response.status_code == 404
+
+
 def test_filter_businesses_by_business_type(
     client,
     db_session,
@@ -90,6 +139,7 @@ def test_filter_businesses_by_business_type(
                 business_type="recycler",
                 accepts_public_dropoff="yes",
                 verification_status="verified",
+                last_verified_at=_recent_verification(),
             ),
             Business(
                 name="Test Collector",
@@ -97,6 +147,7 @@ def test_filter_businesses_by_business_type(
                 business_type="collector",
                 accepts_public_dropoff="no",
                 verification_status="verified",
+                last_verified_at=_recent_verification(),
             ),
         ]
     )
@@ -125,6 +176,7 @@ def test_filter_businesses_by_dropoff(
                 business_type="recycler",
                 accepts_public_dropoff="yes",
                 verification_status="verified",
+                last_verified_at=_recent_verification(),
             ),
             Business(
                 name="No Dropoff Business",
@@ -132,6 +184,7 @@ def test_filter_businesses_by_dropoff(
                 business_type="collector",
                 accepts_public_dropoff="no",
                 verification_status="verified",
+                last_verified_at=_recent_verification(),
             ),
         ]
     )
@@ -163,6 +216,7 @@ def test_filter_businesses_by_material(
         business_type="recycler",
         accepts_public_dropoff="yes",
         verification_status="verified",
+        last_verified_at=_recent_verification(),
     )
 
     business.materials.append(BusinessMaterial(material=plastic))
@@ -188,6 +242,7 @@ def test_business_pagination(client, db_session):
             business_type="recycler",
             accepts_public_dropoff="unknown",
             verification_status="verified",
+            last_verified_at=_recent_verification(),
         )
         for number in range(1, 6)
     ]
@@ -206,3 +261,37 @@ def test_business_pagination(client, db_session):
     assert data["page_size"] == 2
     assert data["total_pages"] == 3
     assert len(data["items"]) == 2
+
+
+def test_pagination_total_excludes_expired_businesses(client, db_session):
+    db_session.add_all(
+        [
+            Business(
+                name="Current Business",
+                slug="current-business",
+                business_type="recycler",
+                accepts_public_dropoff="yes",
+                verification_status="verified",
+                last_verified_at=_recent_verification(),
+            ),
+            Business(
+                name="Expired Business",
+                slug="expired-business-pagination",
+                business_type="recycler",
+                accepts_public_dropoff="yes",
+                verification_status="verified",
+                last_verified_at=datetime.now(UTC) - timedelta(days=366),
+            ),
+        ]
+    )
+    db_session.commit()
+
+    response = client.get("/businesses?page=1&page_size=1")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["total"] == 1
+    assert data["total_pages"] == 1
+    assert len(data["items"]) == 1
+    assert data["items"][0]["name"] == "Current Business"

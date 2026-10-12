@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -6,6 +7,9 @@ import Link from "next/link";
 export default function Header() {
   const [open, setOpen] = useState(false);
   const closeMenu = () => setOpen(false);
+
+  const textLinkClass =
+    "text-sm underline decoration-[#B9E4C4] decoration-2 underline-offset-4 transition-colors hover:text-[var(--color-accent-text)]";
 
   return (
     <header className="border-b border-[var(--color-border)]">
@@ -23,9 +27,15 @@ export default function Header() {
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
-          className="justify-self-center flex size-9 items-center justify-center rounded-full text-xl font-light leading-none text-[var(--color-ink)] transition-colors hover:bg-[var(--color-accent-soft)]"
+          className="flex size-9 items-center justify-center justify-self-center rounded-full text-xl font-light leading-none text-[var(--color-ink)] transition-colors hover:bg-[var(--color-accent-soft)]"
         >
-          <span className={`block transition-transform duration-200 ${open ? "rotate-45" : ""}`}>+</span>
+          <span
+            className={`block transition-transform duration-200 ${
+              open ? "rotate-45" : ""
+            }`}
+          >
+            +
+          </span>
         </button>
 
         <Link
@@ -51,19 +61,31 @@ export default function Header() {
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-muted)]">
                 About
               </p>
+
               <p className="mt-3 max-w-md text-sm leading-relaxed text-[var(--color-muted)]">
-                Tareka is a directory of Kenya&apos;s recycling, collection and upcycling
-                businesses — a growing index of the people and places keeping materials
-                in motion. Listing is free; every submission is reviewed, and each
-                business&apos;s information is verified before it&apos;s marked as such.
+                tareka. is a directory of Kenya&apos;s recycling, collection
+                and upcycling businesses — a growing index of the people and
+                places keeping materials in motion. Listings are reviewed and
+                verified before publication.
               </p>
-              <Link
-                href="/suggest"
-                onClick={closeMenu}
-                className="mt-3 inline-block text-sm font-medium underline decoration-[#B9E4C4] decoration-[3px] underline-offset-4"
-              >
-                Suggest a business →
-              </Link>
+
+              <div className="mt-4 flex flex-col items-start gap-3">
+                <Link
+                  href="/how-it-works"
+                  onClick={closeMenu}
+                  className={textLinkClass}
+                >
+                  How it works →
+                </Link>
+
+                <Link
+                  href="/suggest"
+                  onClick={closeMenu}
+                  className={textLinkClass}
+                >
+                  Suggest a business →
+                </Link>
+              </div>
             </div>
 
             <div className="hidden bg-[var(--color-border)] sm:block" />
@@ -72,18 +94,26 @@ export default function Header() {
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-muted)]">
                 Explore
               </p>
-              <ul className="mt-3 space-y-2 text-sm">
+
+              <ul className="mt-3 space-y-3 text-sm">
                 <li>
                   <Link
                     href="/directory"
                     onClick={closeMenu}
-                    className="underline decoration-[#B9E4C4] decoration-2 underline-offset-4"
+                    className={textLinkClass}
                   >
-                    Directory
+                    Directory →
                   </Link>
                 </li>
-                <li className="text-[var(--color-muted)]">Materials — coming soon</li>
-                <li className="text-[var(--color-muted)]">Insights — coming soon</li>
+                <li>
+                  <Link
+                    href="/insights"
+                    onClick={closeMenu}
+                    className={textLinkClass}
+                  >
+                    Insights →
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -93,7 +123,8 @@ export default function Header() {
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-muted)]">
                 Connect
               </p>
-              <ul className="mt-3 space-y-2 text-sm text-[var(--color-ink)]">
+
+              <ul className="mt-3 space-y-3 text-sm text-[var(--color-ink)]">
                 <li>
                   <a
                     href="https://www.linkedin.com/"
@@ -105,7 +136,10 @@ export default function Header() {
                   </a>
                 </li>
                 <li>
-                  <a href="mailto:hello@tareka.co" className="transition-colors hover:text-[var(--color-accent-text)]">
+                  <a
+                    href="mailto:hello@tareka.co"
+                    className="transition-colors hover:text-[var(--color-accent-text)]"
+                  >
                     Contact <span aria-hidden="true">↗</span>
                   </a>
                 </li>

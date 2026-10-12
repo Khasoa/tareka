@@ -1,17 +1,17 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
-  --color-accent: #b9e4c4;
-  --color-accent-text: #26593b;
+  --color-accent: #C4F0A5;
   --color-accent-soft: #eff8f1;
   --color-structural: #dde9df;
 
-  --color-ink: #1c211e;
-  --color-heading: #111512;
-  --color-body: #363b38;
-  --color-muted: #626a65;
+  --color-ink: #0A0A0A;
+  --color-heading: #000000;
+  --color-body: #171717;
+  --color-muted: #4B4B4B;
 
-  --color-paper: #fafaf9;
+  --color-paper: #FaFaFa;
   --color-surface: #ffffff;
 
   --color-border: #d9ddda;

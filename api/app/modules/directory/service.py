@@ -1,7 +1,15 @@
+from datetime import UTC, datetime, timedelta
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.modules.directory.models import Business, BusinessMaterial, Location, Material
+
+VERIFICATION_MAX_AGE_DAYS = 365
+
+
+def _verification_cutoff() -> datetime:
+    return datetime.now(UTC) - timedelta(days=VERIFICATION_MAX_AGE_DAYS)
 
 
 def list_businesses(
@@ -14,18 +22,31 @@ def list_businesses(
     page: int = 1,
     page_size: int = 20,
 ) -> tuple[list[Business], int]:
+    cutoff = _verification_cutoff()
+
     query = (
         select(Business)
         .options(
             selectinload(Business.locations),
             selectinload(Business.materials).selectinload(BusinessMaterial.material),
         )
-        .where(Business.is_active.is_(True), Business.verification_status == "verified")
+        .where(
+            Business.is_active.is_(True),
+            Business.verification_status == "verified",
+            Business.last_verified_at.is_not(None),
+            Business.last_verified_at >= cutoff,
+        )
     )
+
     count_query = (
         select(func.count(func.distinct(Business.id)))
         .select_from(Business)
-        .where(Business.is_active.is_(True), Business.verification_status == "verified")
+        .where(
+            Business.is_active.is_(True),
+            Business.verification_status == "verified",
+            Business.last_verified_at.is_not(None),
+            Business.last_verified_at >= cutoff,
+        )
     )
 
     if county:
@@ -52,13 +73,13 @@ def list_businesses(
             Business.accepts_public_dropoff == accepts_public_dropoff
         )
 
-    # Alphabetical — every result here is already verified, so this is just
-    # a readable tiebreaker, not a trust signal anymore.
+    # Every result is verified and within the annual verification period.
     query = query.order_by(Business.name)
 
     offset = (page - 1) * page_size
     businesses = db.scalars(query.offset(offset).limit(page_size)).unique().all()
     total = db.scalar(count_query) or 0
+
     return list(businesses), total
 
 
@@ -74,8 +95,11 @@ def get_business_by_slug(db: Session, slug: str) -> Business | None:
             Business.slug == slug,
             Business.is_active.is_(True),
             Business.verification_status == "verified",
+            Business.last_verified_at.is_not(None),
+            Business.last_verified_at >= _verification_cutoff(),
         )
     )
+
     return db.scalars(query).unique().first()
 
 

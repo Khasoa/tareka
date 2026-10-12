@@ -1,5 +1,4 @@
 import csv
-from datetime import UTC, datetime
 from pathlib import Path
 
 from sqlalchemy import select
@@ -17,7 +16,6 @@ from app.modules.directory.models import (
     BusinessMaterial,
     Location,
     Material,
-    VerificationRecord,
 )
 
 
@@ -83,7 +81,6 @@ def import_businesses(db: Session, csv_path: Path) -> tuple[int, list[str]]:
                         raise ValueError(f"unknown material '{material_slug}'")
                     materials.append(material)
 
-                now = datetime.now(UTC)
                 business = Business(
                     name=name,
                     slug=slug,
@@ -96,8 +93,8 @@ def import_businesses(db: Session, csv_path: Path) -> tuple[int, list[str]]:
                     source_type=(row.get("source_type") or "").strip()
                     or "admin_research",
                     source_url=source_url,
-                    verification_status="verified",
-                    last_verified_at=now,
+                    verification_status="unverified",
+                    last_verified_at=None,
                 )
 
                 db.add(business)
@@ -118,17 +115,6 @@ def import_businesses(db: Session, csv_path: Path) -> tuple[int, list[str]]:
                             material_id=material.id,
                         )
                     )
-
-                db.add(
-                    VerificationRecord(
-                        business_id=business.id,
-                        status="verified",
-                        verified_at=now,
-                        source_type=business.source_type,
-                        source_url=source_url,
-                        notes="Imported from an administrator-managed CSV.",
-                    )
-                )
 
                 db.commit()
                 imported += 1
