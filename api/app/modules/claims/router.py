@@ -1,7 +1,6 @@
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from app.core.deps import DbSession
@@ -10,19 +9,10 @@ from app.modules.admin.audit import record_audit
 from app.modules.admin.models import AdminUser
 from app.modules.admin.service import require_admin
 from app.modules.claims.models import BusinessClaim
+from app.modules.claims.schema import ClaimCreate
 from app.modules.directory.models import Business
 
 router = APIRouter(prefix="/api", tags=["claims"])
-
-
-class ClaimCreate(BaseModel):
-    claimant_name: str = Field(min_length=2, max_length=200)
-    claimant_role: str = Field(min_length=2, max_length=50)
-    claimant_contact: str = Field(min_length=3, max_length=200)
-    correction_note: str | None = Field(default=None, max_length=1000)
-    content_use_consent: bool
-    image_consent: bool = False
-    honeypot: str = Field(default="", max_length=0)
 
 
 def _claim_payload(claim: BusinessClaim, business: Business) -> dict:
@@ -53,12 +43,6 @@ def create_claim(
 ) -> dict[str, str]:
     if body.honeypot:
         return {"status": "ok"}
-
-    if not body.content_use_consent:
-        raise HTTPException(
-            status_code=400,
-            detail="Content-use consent is required to submit this claim.",
-        )
 
     business = db.get(Business, business_id)
     if business is None or not business.is_active:
@@ -124,14 +108,16 @@ def approve_claim(
         "verification_status": business.verification_status,
     }
 
-    business.content_use_consent = claim.content_use_consent
-    business.image_consent = claim.image_consent
+    # A claim may grant consent, but a False value on the claim
+    # must not overwrite an existing business-level consent decision.
+    if claim.content_use_consent:
+        business.content_use_consent = True
 
-    # A correction request is a review flag, not permission to edit
-    # canonical business data automatically.
-    if claim.correction_note and claim.correction_note.strip():
-        business.verification_status = "needs_review"
+    if claim.image_consent:
+        business.image_consent = True
 
+    # Claim approval and correction notes do not change verification.
+    # Correction notes remain available for an admin to review.
     claim.status = "approved"
     claim.reviewed_at = datetime.now(UTC)
 

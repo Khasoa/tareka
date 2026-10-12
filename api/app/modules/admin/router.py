@@ -1,4 +1,5 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
@@ -46,6 +47,18 @@ class PublishSuggestionRequest(BaseModel):
     website_url: str | None = Field(default=None, max_length=500)
     phone: str | None = Field(default=None, max_length=50)
     material_ids: list[int] = Field(default_factory=list)
+
+
+VerificationAnswer = Literal["confirmed", "not_confirmed", "unknown"]
+
+
+class VerifyBusinessRequest(BaseModel):
+    existence_confirmed: VerificationAnswer
+    identity_consistent: VerificationAnswer
+    location_confirmed: VerificationAnswer
+    materials_confirmed: VerificationAnswer
+    dropoff_policy_confirmed: VerificationAnswer
+    notes: str = Field(min_length=1, max_length=1000)
 
 
 @router.post("/login")
@@ -141,15 +154,72 @@ def get_current_admin(
     return {"email": admin.email}
 
 
+@router.get("/businesses/needs-verification")
+def list_businesses_needing_verification(
+    db: DbSession,
+    admin: AdminUser = Depends(require_admin),
+) -> list[dict[str, object]]:
+    cutoff = datetime.now(UTC) - timedelta(days=365)
+
+    businesses = db.scalars(
+        select(Business)
+        .where(
+            Business.is_active.is_(True),
+            (
+                (Business.verification_status != "verified")
+                | (Business.last_verified_at.is_(None))
+                | (Business.last_verified_at < cutoff)
+            ),
+        )
+        .order_by(
+            Business.last_verified_at.asc().nulls_first(),
+            Business.name.asc(),
+        )
+    ).all()
+
+    return [
+        {
+            "id": business.id,
+            "name": business.name,
+            "slug": business.slug,
+            "business_type": business.business_type,
+            "verification_status": business.verification_status,
+            "last_verified_at": business.last_verified_at,
+            "website_url": business.website_url,
+            "phone": business.phone,
+            "source_url": business.source_url,
+        }
+        for business in businesses
+    ]
+
+
 @router.post("/businesses/{business_id}/verify")
 def verify_business(
     business_id: int,
+    body: VerifyBusinessRequest,
     db: DbSession,
     admin: AdminUser = Depends(require_admin),
 ) -> dict[str, str]:
     business = db.get(Business, business_id)
     if business is None:
         raise HTTPException(status_code=404, detail="Business not found")
+
+    if not business.is_active:
+        raise HTTPException(
+            status_code=409,
+            detail="Inactive businesses cannot be verified.",
+        )
+
+    checklist = {
+        "existence_confirmed": body.existence_confirmed,
+        "identity_consistent": body.identity_consistent,
+        "location_confirmed": body.location_confirmed,
+        "materials_confirmed": body.materials_confirmed,
+        "dropoff_policy_confirmed": body.dropoff_policy_confirmed,
+    }
+
+    all_confirmed = all(answer == "confirmed" for answer in checklist.values())
+    outcome = "verified" if all_confirmed else "needs_review"
 
     now = datetime.now(UTC)
     before = {
@@ -159,35 +229,44 @@ def verify_business(
         ),
     }
 
-    business.verification_status = "verified"
-    business.last_verified_at = now
+    business.verification_status = outcome
+
+    if all_confirmed:
+        business.last_verified_at = now
+
+    evidence = f"Checklist: {checklist}. Reviewer notes: {body.notes.strip()}"
 
     db.add(
         VerificationRecord(
             business_id=business.id,
-            status="verified",
+            status=outcome,
             verified_at=now,
             source_type="admin_research",
             source_url=business.source_url,
-            notes="Verified by an administrator.",
+            notes=evidence,
         )
     )
 
     record_audit(
         db,
         admin_id=admin.id,
-        action="verify_business",
+        action="verify_business" if all_confirmed else "review_business",
         entity="business",
         entity_id=business.id,
         before=before,
         after={
-            "verification_status": "verified",
-            "last_verified_at": now.isoformat(),
+            "verification_status": outcome,
+            "last_verified_at": (
+                business.last_verified_at.isoformat()
+                if business.last_verified_at
+                else None
+            ),
+            "checklist": checklist,
         },
     )
 
     db.commit()
-    return {"status": "verified"}
+    return {"status": outcome}
 
 
 @router.post("/suggestions/{suggestion_id}/publish")
@@ -239,7 +318,6 @@ def publish_suggestion(
             detail="One or more selected materials do not exist.",
         )
 
-    now = datetime.now(UTC)
     business = Business(
         name=suggestion.name,
         slug=slug,
@@ -250,8 +328,8 @@ def publish_suggestion(
         phone=(body.phone or suggestion.phone or "").strip() or None,
         source_type="admin_research",
         source_url=suggestion.source_url,
-        verification_status="verified",
-        last_verified_at=now,
+        verification_status="unverified",
+        last_verified_at=None,
     )
 
     try:
@@ -274,17 +352,6 @@ def publish_suggestion(
                 )
             )
 
-        db.add(
-            VerificationRecord(
-                business_id=business.id,
-                status="verified",
-                verified_at=now,
-                source_type="admin_research",
-                source_url=suggestion.source_url,
-                notes="Published after administrator research and review.",
-            )
-        )
-
         suggestion.status = "published"
 
         record_audit(
@@ -298,6 +365,7 @@ def publish_suggestion(
                 "status": "published",
                 "business_id": business.id,
                 "business_slug": slug,
+                "verification_status": "unverified",
             },
         )
 

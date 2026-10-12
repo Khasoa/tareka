@@ -68,7 +68,7 @@ def test_security_headers_are_present(client):
     assert response.headers["referrer-policy"] == "strict-origin-when-cross-origin"
 
 
-def test_claim_requires_consent(client, db_session):
+def test_claim_without_consent_is_accepted(client, db_session):
     business = Business(
         name="Consent Test Recycler",
         slug="consent-test-recycler",
@@ -90,8 +90,14 @@ def test_claim_requires_consent(client, db_session):
         },
     )
 
-    assert response.status_code == 400
-    assert db_session.scalar(select(func.count()).select_from(BusinessClaim)) == 0
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+    claim = db_session.scalar(select(BusinessClaim))
+    assert claim is not None
+    assert claim.content_use_consent is False
+    assert claim.image_consent is False
+    assert claim.status == "pending"
 
 
 def test_unknown_url_scheme_is_rejected_by_validator():

@@ -46,6 +46,13 @@ export default function Footer() {
               </Link>
 
               <Link
+                href="/insights"
+                className="text-[var(--color-ink)] underline decoration-[#B9E4C4] decoration-[3px] underline-offset-4 transition-colors hover:text-[var(--color-accent-text)]"
+              >
+                Insights
+              </Link>
+
+              <Link
                 href="/suggest"
                 className="text-[var(--color-ink)] underline decoration-[#B9E4C4] decoration-[3px] underline-offset-4 transition-colors hover:text-[var(--color-accent-text)]"
               >
