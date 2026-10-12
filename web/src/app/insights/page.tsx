@@ -7,7 +7,7 @@ import { getAllInsights } from "@/lib/insights";
 export const metadata = {
   title: "Insights | tareka.",
   description:
-    "Explore materials, recycling, recovery methods and Kenya's recovery systems.",
+    "Explore materials, recycling, recovery methods and Kenya&apos;s recovery systems.",
 };
 
 function formatPublishedDate(value: string) {
@@ -108,7 +108,7 @@ export default function InsightsIndexPage() {
               Articles are being prepared
             </h2>
             <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--color-muted)]">
-              We're preparing practical, researched information about
+              We&apos;re preparing practical, researched information about
               materials and recovery. Check back soon.
             </p>
           </div>
