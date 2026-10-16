@@ -50,10 +50,11 @@ export default function HeroDirectorySearch() {
           type="search"
           name="q"
           value={value}
-          onChange={(event) => setValue(event.target.value)}
-          onSearch={(event) => {
-            if (event.currentTarget.value.trim() === "") {
-              setValue("");
+          onChange={(event) => {
+            const nextValue = event.currentTarget.value;
+            setValue(nextValue);
+
+            if (nextValue.trim() === "") {
               commitQuery("");
             }
           }}
