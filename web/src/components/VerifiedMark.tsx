@@ -1,8 +1,7 @@
 export default function VerifiedMark() {
   return (
     <span
-      className="inline-flex h-4 w-4 items-center justify-center rounded-full border-[1.5px] border-[var(--color-border-strong)]"
-      style={{ backgroundColor: "#B9E4C4" }}
+      className="inline-flex h-4 w-4 items-center justify-center rounded-full border-[1.5px] border-[var(--color-border-strong)] bg-[var(--color-accent)]"
       aria-hidden="true"
     >
       <svg viewBox="0 0 20 20" className="h-2.5 w-2.5" fill="none">

@@ -1,6 +1,6 @@
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.modules.directory.models import Business, BusinessMaterial, Location, Material
@@ -15,6 +15,7 @@ def _verification_cutoff() -> datetime:
 def list_businesses(
     db: Session,
     *,
+    q: str | None = None,
     county: str | None = None,
     material_id: int | None = None,
     business_type: str | None = None,
@@ -48,6 +49,19 @@ def list_businesses(
             Business.last_verified_at >= cutoff,
         )
     )
+
+    if q:
+        pattern = f"%{q.strip()}%"
+        search_filter = or_(
+            Business.name.ilike(pattern),
+            Business.locations.any(Location.county.ilike(pattern)),
+            Business.locations.any(Location.town.ilike(pattern)),
+            Business.materials.any(
+                BusinessMaterial.material.has(Material.name.ilike(pattern))
+            ),
+        )
+        query = query.where(search_filter)
+        count_query = count_query.where(search_filter)
 
     if county:
         query = query.join(Business.locations).where(Location.county == county)

@@ -58,12 +58,30 @@ async def add_security_headers(
     return response
 
 
+def _allowed_origins() -> list[str]:
+    configured = [
+        origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()
+    ]
+    if settings.environment == "production":
+        origins = [settings.frontend_origin.strip(), *configured]
+    else:
+        origins = [
+            settings.frontend_origin.strip(),
+            *configured,
+            "http://localhost:3000",
+            "http://localhost:3010",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:3010",
+        ]
+    return list(dict.fromkeys(origin for origin in origins if origin))
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=_allowed_origins(),
     allow_credentials=True,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "Accept"],
 )
 
 app.include_router(directory_router)

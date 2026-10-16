@@ -33,12 +33,12 @@ export async function generateMetadata({
 
   if (!insight) {
     return {
-      title: "Article not found | tareka.",
+      title: "Article not found | tareka",
     };
   }
 
   return {
-    title: `${insight.frontmatter.title} | tareka.`,
+    title: `${insight.frontmatter.title} | tareka`,
     description: insight.frontmatter.excerpt,
     openGraph: {
       title: insight.frontmatter.title,
@@ -68,17 +68,17 @@ export default async function InsightPage({ params }: InsightPageProps) {
       <main className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-8 sm:py-16">
         <Link
           href="/insights"
-          className="text-sm font-medium text-[var(--color-muted)] transition-colors hover:text-[var(--color-accent-text)]"
+          className="text-sm font-medium text-[var(--color-muted)] transition-colors hover:text-[var(--color-ink)]"
         >
           ← All insights
         </Link>
 
-        <header className="mt-7 border-b border-black pb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-accent-text)]">
+        <header className="mt-7 border-b border-[var(--color-border-strong)] pb-8">
+          <p className="kicker">
             {frontmatter.category}
           </p>
 
-          <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-[var(--color-heading)] sm:text-4xl">
+          <h1 className="page-heading mt-3 leading-tight">
             {frontmatter.title}
           </h1>
 
@@ -102,12 +102,12 @@ export default async function InsightPage({ params }: InsightPageProps) {
               height={675}
               priority
               sizes="(max-width: 768px) 100vw, 768px"
-              className="aspect-[16/9] w-full rounded-2xl border border-black object-cover"
+              className="aspect-[16/9] w-full rounded-[var(--radius-control)] border border-[var(--color-border-strong)] object-cover"
             />
           </figure>
         )}
 
-        <article className="prose prose-neutral mt-8 max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-[var(--color-heading)] prose-p:leading-7 prose-p:text-[var(--color-body)] prose-a:text-[var(--color-accent-text)] prose-a:decoration-[#B9E4C4] prose-a:decoration-2 prose-a:underline-offset-4 prose-strong:text-[var(--color-heading)] prose-li:leading-7">
+        <article className="prose mt-8 max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-[var(--color-heading)] prose-p:leading-7 prose-p:text-[var(--color-body)] prose-a:text-[var(--color-body)] prose-a:decoration-[var(--color-accent)] prose-a:decoration-2 prose-a:underline-offset-4 prose-strong:text-[var(--color-heading)] prose-li:leading-7">
           <MDXRemote
             source={content}
             components={{
@@ -116,10 +116,10 @@ export default async function InsightPage({ params }: InsightPageProps) {
           />
         </article>
 
-        <div className="mt-12 border-t border-black pt-6">
+        <div className="mt-12 border-t border-[var(--color-border-strong)] pt-6">
           <Link
-            href="/directory"
-            className="text-sm font-medium underline decoration-[#B9E4C4] decoration-[3px] underline-offset-4 transition-colors hover:text-[var(--color-accent-text)]"
+            href="/#directory"
+            className="link-accent text-sm font-medium"
           >
             Find a recovery business →
           </Link>

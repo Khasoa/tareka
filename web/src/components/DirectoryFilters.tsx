@@ -24,8 +24,7 @@ const BUSINESS_TYPES = [
   { value: "mixed", label: "Mixed" },
 ];
 
-const selectClassName =
-  "w-full rounded-lg border border-[var(--color-border)] bg-white p-2 text-sm text-[var(--color-ink)] outline-none transition-colors hover:border-[var(--color-accent-text)] focus:border-[var(--color-accent-text)] focus:ring-2 focus:ring-[var(--color-accent-soft)] focus-visible:outline-none";
+const selectClassName = "select-field text-sm";
 
 export default function DirectoryFilters({
   businessType,
@@ -56,10 +55,10 @@ export default function DirectoryFilters({
                   type="button"
                   onClick={() => onBusinessTypeChange(t.value)}
                   aria-pressed={selected}
-                  className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
+                  className={`rounded-[var(--radius-control)] border px-4 py-1.5 text-sm transition-colors ${
                     selected
-                      ? "border-[var(--color-ink)] bg-[var(--color-ink)] font-medium text-white"
-                      : "border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-accent-text)] hover:text-[var(--color-ink)]"
+                      ? "border-[var(--color-ink)] bg-[var(--color-ink)] font-medium text-[var(--color-inverse)]"
+                      : "border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-ink)]"
                   }`}
                 >
                   {t.label}
@@ -72,9 +71,9 @@ export default function DirectoryFilters({
             type="button"
             onClick={onShowUpcyclers}
             aria-pressed={businessType === "upcycler"}
-            className={`ml-auto rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+            className={`ml-auto rounded-[var(--radius-control)] border px-4 py-1.5 text-sm font-medium transition-colors ${
               businessType === "upcycler"
-                ? "border-[var(--color-ink)] bg-[var(--color-ink)] text-white"
+                ? "border-[var(--color-ink)] bg-[var(--color-ink)] text-[var(--color-inverse)]"
                 : "border-[var(--color-border-strong)] text-[var(--color-ink)] hover:bg-[var(--color-accent-soft)]"
             }`}
           >

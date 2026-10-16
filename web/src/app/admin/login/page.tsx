@@ -36,9 +36,9 @@ export default function AdminLoginPage() {
 
   return (
     <main className="mx-auto w-full max-w-md flex-1 px-5 py-12 sm:px-6 sm:py-16">
-      <div className="rounded-2xl border border-black bg-white p-8 sm:p-10">
-        <p className="text-sm font-semibold tracking-wide text-[var(--color-accent-text)]">
-          tareka. / admin
+      <div className="panel p-8 sm:p-10">
+        <p className="kicker text-sm font-semibold tracking-wide">
+          tareka / admin
         </p>
 
         <h1 className="mt-3 text-3xl font-semibold tracking-tight">
@@ -66,7 +66,7 @@ export default function AdminLoginPage() {
               maxLength={200}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-lg border border-black bg-white px-3 py-3 outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+              className="input-field"
             />
           </div>
 
@@ -85,14 +85,14 @@ export default function AdminLoginPage() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-lg border border-black bg-white px-3 py-3 outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+              className="input-field"
             />
           </div>
 
           {error && (
             <p
               role="alert"
-              className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
+              className="alert-error"
             >
               {error}
             </p>
@@ -101,7 +101,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg border border-black bg-black px-4 py-3 font-medium text-white transition hover:bg-[var(--color-accent)] hover:text-[var(--color-heading)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-primary w-full disabled:cursor-not-allowed"
           >
             {loading ? "Signing in…" : "Sign in"}
           </button>

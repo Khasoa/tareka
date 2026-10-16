@@ -37,6 +37,56 @@ def test_list_businesses(client, db_session):
     assert data["total"] == 1
     assert data["items"][0]["name"] == "Green Test Recycler"
     assert data["items"][0]["business_type"] == "recycler"
+    assert [item["slug"] for item in data["items"][0]["materials"]] == ["plastic"]
+
+
+def test_list_businesses_includes_all_linked_materials(client, db_session):
+    plastic = Material(name="Plastic", slug="plastic")
+    glass = Material(name="Glass", slug="glass")
+    paper = Material(name="Paper", slug="paper")
+    metal = Material(name="Metal", slug="metal")
+
+    business = Business(
+        name="Multi Material Recycler",
+        slug="multi-material-recycler",
+        business_type="recycler",
+        accepts_public_dropoff="yes",
+        verification_status="verified",
+        last_verified_at=_recent_verification(),
+    )
+    for material in (plastic, glass, paper, metal):
+        business.materials.append(BusinessMaterial(material=material))
+    business.locations.append(Location(county="Nairobi", town="Westlands"))
+
+    db_session.add(business)
+    db_session.commit()
+
+    response = client.get("/businesses")
+    assert response.status_code == 200
+    item = response.json()["items"][0]
+    assert [material["slug"] for material in item["materials"]] == [
+        "plastic",
+        "glass",
+        "paper",
+        "metal",
+    ]
+
+
+def test_list_businesses_omits_materials_when_none(client, db_session):
+    business = Business(
+        name="No Materials Recycler",
+        slug="no-materials-recycler",
+        business_type="recycler",
+        accepts_public_dropoff="yes",
+        verification_status="verified",
+        last_verified_at=_recent_verification(),
+    )
+    db_session.add(business)
+    db_session.commit()
+
+    response = client.get("/businesses")
+    assert response.status_code == 200
+    assert response.json()["items"][0]["materials"] == []
 
 
 def test_get_business_by_slug(client, db_session):

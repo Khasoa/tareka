@@ -24,12 +24,10 @@ export default async function ClaimPage({ params }: ClaimPageProps) {
           ← Back to listing
         </Link>
 
-        <div className="mt-6 border-b border-black pb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-accent-text)]">
-            Business listing
-          </p>
+        <div className="mt-6 border-b border-[var(--color-border)] pb-8">
+          <p className="kicker">Business listing</p>
 
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h1 className="page-heading mt-3">
             Claim {business.name}
           </h1>
 
@@ -38,7 +36,7 @@ export default async function ClaimPage({ params }: ClaimPageProps) {
             you are and request any corrections to the listing.
           </p>
 
-          <div className="mt-5 rounded-xl border border-black bg-[var(--color-accent-soft)] p-4">
+          <div className="notice mt-5 p-4">
             <p className="text-sm font-semibold text-[var(--color-heading)]">
               Claims are reviewed before changes are made.
             </p>

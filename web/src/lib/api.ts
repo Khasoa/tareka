@@ -8,6 +8,13 @@ export type Location = {
   town: string | null;
 };
 
+export type Material = {
+  id: number;
+  name: string;
+  slug: string;
+  parent_id: number | null;
+};
+
 export type Business = {
   id: number;
   name: string;
@@ -17,6 +24,8 @@ export type Business = {
   verification_status: string;
   last_verified_at: string | null;
   locations: Location[];
+  /** Present on list and detail responses. Older payloads may omit it. */
+  materials?: Material[];
 };
 
 export type BusinessDetail = Business & {
@@ -24,12 +33,8 @@ export type BusinessDetail = Business & {
   website_url: string | null;
   phone: string | null;
   email: string | null;
-  materials: {
-    id: number;
-    name: string;
-    slug: string;
-    parent_id: number | null;
-  }[];
+  image_url: string | null;
+  image_alt: string | null;
   created_at: string;
   updated_at: string;
 };
