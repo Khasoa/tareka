@@ -1,10 +1,12 @@
 
 import Link from "next/link";
 
+import Header from "@/components/Header";
+
 export const metadata = {
-  title: "How It Works | tareka.",
+  title: "How It Works | tareka",
   description:
-    "Learn how tareka. verifies recovery businesses, helps people find material recovery options, and handles business claims and content consent.",
+    "Learn how tareka verifies recovery businesses, helps people find material recovery options, and handles business claims and content consent.",
 };
 
 const steps = [
@@ -29,14 +31,14 @@ const steps = [
     title: "Businesses can claim their profiles",
     paragraphs: [
       "If you represent a business already in our directory, you can request to claim its profile. We review the request before approving a representative to help keep the business information accurate.",
-      "A claim can include proposed corrections or updated information. Submitting a claim does not automatically change a business's verification status; tareka. reviews the claim separately.",
+      "A claim can include proposed corrections or updated information. Submitting a claim does not automatically change a business's verification status; tareka reviews the claim separately.",
     ],
   },
   {
     number: "04",
     title: "Content participation is a separate choice",
     paragraphs: [
-      "We may feature recovery businesses in tareka. articles, educational content and social channels, including LinkedIn.",
+      "We may feature recovery businesses in tareka articles, educational content and social channels, including LinkedIn.",
       "Our claim process records content-use consent and image consent separately. Claiming a profile is not, by itself, a substitute for the relevant consent. The scope of any permission should be clear before a business's information or images are used in a feature.",
     ],
   },
@@ -52,31 +54,35 @@ const steps = [
 
 export default function HowItWorksPage() {
   return (
-    <main className="min-h-screen bg-[var(--color-paper)] px-6 py-10 sm:py-16">
+    <>
+      <Header />
+      <main className="min-h-screen bg-[var(--color-paper)] px-6 py-10 sm:py-16">
       <div className="mx-auto max-w-4xl">
         <Link
-          href="/directory"
+          href="/"
           className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-muted)] normal-case transition-colors hover:text-[var(--color-ink)]"
         >
           <span aria-hidden="true">←</span>
-          Back to tareka.
+          Back to tareka
         </Link>
 
         <div className="mt-10 max-w-2xl sm:mt-14">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-muted)]">
-            <span className="normal-case">About tareka.</span>
+            <span className="normal-case">About tareka</span>
           </p>
 
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-[var(--color-ink)] sm:text-5xl">
+          <h1 className="page-heading mt-4">
             How it works
           </h1>
 
           <p className="mt-6 text-base leading-relaxed text-[var(--color-muted)] sm:text-lg">
-            <span className="normal-case">tareka.</span> helps people discover
-            businesses working with recoverable materials in Kenya. Our
-            directory is built around researched business profiles,
-            verification before publication and clear information about what
-            each business does.
+            tareka is a place to look up recycling, collection and upcycling
+            businesses in Kenya — and to see what people are making from
+            materials that might otherwise be thrown away. The practical side
+            is finding somewhere that may take a material. The other side is
+            the work of turning that material into something else. Listings
+            are researched before they are published. They are not a guarantee
+            of what a business will accept on a given day.
           </p>
         </div>
 
@@ -86,7 +92,7 @@ export default function HowItWorksPage() {
               key={step.number}
               className="grid grid-cols-1 gap-4 border-b border-[var(--color-border)] py-8 sm:grid-cols-[72px_1fr] sm:gap-8 sm:py-10"
             >
-              <p className="text-sm font-medium tabular-nums text-[var(--color-accent-text)]">
+              <p className="text-sm font-medium tabular-nums text-[var(--color-muted)]">
                 {step.number}
               </p>
 
@@ -121,25 +127,22 @@ export default function HowItWorksPage() {
             </p>
           </div>
 
-          <Link
-            href="/suggest"
-            style={{ color: "#FFFFFF", textTransform: "none" }}
-            className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--color-ink)] px-5 py-3 text-sm font-medium transition-opacity hover:opacity-85"
-          >
+          <Link href="/suggest" className="btn-primary w-fit">
             Suggest a business <span aria-hidden="true">→</span>
           </Link>
         </div>
 
         <div className="mt-10">
           <Link
-            href="/directory"
+            href="/"
             className="inline-flex items-center gap-2 text-sm text-[var(--color-muted)] normal-case transition-colors hover:text-[var(--color-ink)]"
           >
             <span aria-hidden="true">←</span>
-            Back to tareka.
+            Back to tareka
           </Link>
         </div>
       </div>
     </main>
+    </>
   );
 }

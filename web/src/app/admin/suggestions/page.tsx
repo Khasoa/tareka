@@ -35,6 +35,8 @@ function SuggestionCard({
   const [town, setTown] = useState("");
   const [website, setWebsite] = useState("");
   const [phone, setPhone] = useState(suggestion.phone ?? "");
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageAlt, setImageAlt] = useState("");
   const [materialIds, setMaterialIds] = useState<number[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -59,7 +61,16 @@ function SuggestionCard({
       return;
     }
 
-    if (!window.confirm(`Publish "${suggestion.name}" as a verified listing?`)) {
+    if (imageUrl.trim() && !imageAlt.trim()) {
+      setError("Add a short image description, or leave the image URL empty.");
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `Publish "${suggestion.name}"? It stays unpublished until you mark it verified.`,
+      )
+    ) {
       return;
     }
 
@@ -80,6 +91,8 @@ function SuggestionCard({
             town: town.trim() || null,
             website_url: website.trim() || null,
             phone: phone.trim() || null,
+            image_url: imageUrl.trim() || null,
+            image_alt: imageAlt.trim() || null,
             material_ids: materialIds,
           }),
         },
@@ -120,11 +133,11 @@ function SuggestionCard({
   }
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-black bg-white">
-      <div className="border-b border-black bg-[var(--color-accent-soft)] px-6 py-5">
+    <article className="overflow-hidden rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-surface)]">
+      <div className="border-b border-[var(--color-border-strong)] bg-[var(--color-accent-soft)] px-6 py-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-accent-text)]">
+            <p className="kicker">
               Business suggestion
             </p>
 
@@ -142,7 +155,7 @@ function SuggestionCard({
             </p>
           </div>
 
-          <span className="rounded-full border border-black bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide">
+          <span className="rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-1 text-xs font-semibold uppercase tracking-wide">
             {suggestion.status}
           </span>
         </div>
@@ -209,9 +222,9 @@ function SuggestionCard({
           )}
         </dl>
 
-        <div className="mt-8 border-t border-black pt-6">
+        <div className="mt-8 border-t border-[var(--color-border-strong)] pt-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-accent-text)]">
+            <p className="kicker">
               Editorial review
             </p>
 
@@ -235,7 +248,7 @@ function SuggestionCard({
                 maxLength={220}
                 value={slug}
                 onChange={(event) => setSlug(event.target.value)}
-                className="mt-2 w-full rounded-lg border border-black bg-white px-3 py-2.5 font-normal outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+                className="input-field mt-2 py-2.5"
               />
             </label>
 
@@ -245,7 +258,7 @@ function SuggestionCard({
               <select
                 value={businessType}
                 onChange={(event) => setBusinessType(event.target.value)}
-                className="mt-2 w-full rounded-lg border border-black bg-white px-3 py-2.5 font-normal outline-none"
+                className="input-field mt-2 py-2.5"
               >
                 <option value="recycler">Recycler</option>
                 <option value="upcycler">Upcycler</option>
@@ -260,7 +273,7 @@ function SuggestionCard({
               <select
                 value={dropoff}
                 onChange={(event) => setDropoff(event.target.value)}
-                className="mt-2 w-full rounded-lg border border-black bg-white px-3 py-2.5 font-normal outline-none"
+                className="input-field mt-2 py-2.5"
               >
                 <option value="unknown">Unknown</option>
                 <option value="yes">Yes</option>
@@ -275,7 +288,7 @@ function SuggestionCard({
                 maxLength={100}
                 value={town}
                 onChange={(event) => setTown(event.target.value)}
-                className="mt-2 w-full rounded-lg border border-black bg-white px-3 py-2.5 font-normal outline-none"
+                className="input-field mt-2 py-2.5"
               />
             </label>
 
@@ -288,7 +301,7 @@ function SuggestionCard({
                 rows={5}
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
-                className="mt-2 w-full rounded-lg border border-black bg-white px-3 py-2.5 font-normal leading-6 outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+                className="input-field mt-2 py-2.5 leading-6"
                 placeholder="Describe what the business does, based on your research."
               />
             </label>
@@ -301,7 +314,7 @@ function SuggestionCard({
                 maxLength={500}
                 value={website}
                 onChange={(event) => setWebsite(event.target.value)}
-                className="mt-2 w-full rounded-lg border border-black bg-white px-3 py-2.5 font-normal outline-none"
+                className="input-field mt-2 py-2.5"
                 placeholder="https://example.org"
               />
             </label>
@@ -313,7 +326,32 @@ function SuggestionCard({
                 maxLength={50}
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
-                className="mt-2 w-full rounded-lg border border-black bg-white px-3 py-2.5 font-normal outline-none"
+                className="input-field mt-2 py-2.5"
+              />
+            </label>
+
+            <label className="text-sm font-semibold">
+              Image URL (optional)
+
+              <input
+                type="url"
+                maxLength={500}
+                value={imageUrl}
+                onChange={(event) => setImageUrl(event.target.value)}
+                className="input-field mt-2 py-2.5"
+                placeholder="https://example.org/photo.jpg"
+              />
+            </label>
+
+            <label className="text-sm font-semibold">
+              Image description
+
+              <input
+                maxLength={200}
+                value={imageAlt}
+                onChange={(event) => setImageAlt(event.target.value)}
+                className="input-field mt-2 py-2.5"
+                placeholder="Required if an image URL is set"
               />
             </label>
           </div>
@@ -327,7 +365,7 @@ function SuggestionCard({
               {materials.map((material) => (
                 <label
                   key={material.id}
-                  className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-paper)] px-3 py-2.5 text-sm transition hover:border-black"
+                  className="flex items-center gap-3 rounded-[var(--radius-control)] border border-[var(--color-border)] bg-[var(--color-paper)] px-3 py-2.5 text-sm transition hover:border-[var(--color-border-strong)]"
                 >
                   <input
                     type="checkbox"
@@ -335,7 +373,7 @@ function SuggestionCard({
                     onChange={(event) =>
                       toggleMaterial(material.id, event.target.checked)
                     }
-                    className="h-4 w-4 accent-black"
+                    className="h-4 w-4 accent-[var(--color-ink)]"
                   />
 
                   {material.name}
@@ -348,7 +386,7 @@ function SuggestionCard({
         {error && (
           <p
             role="alert"
-            className="mt-5 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
+            className="mt-5 alert-error"
           >
             {error}
           </p>
@@ -357,7 +395,7 @@ function SuggestionCard({
         {message && (
           <p
             role="status"
-            className="mt-5 rounded-lg border border-black bg-[var(--color-accent-soft)] px-4 py-3 text-sm text-[var(--color-accent-text)]"
+            className="notice mt-5 px-4 py-3 text-sm text-[var(--color-body)]"
           >
             {message}
           </p>
@@ -368,7 +406,7 @@ function SuggestionCard({
             type="button"
             disabled={busy}
             onClick={publish}
-            className="rounded-lg border border-black bg-black px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-accent)] hover:text-[var(--color-heading)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? "Processing…" : "Publish verified listing"}
           </button>
@@ -377,7 +415,7 @@ function SuggestionCard({
             type="button"
             disabled={busy}
             onClick={reject}
-            className="rounded-lg border border-black bg-white px-5 py-2.5 text-sm font-semibold text-[var(--color-heading)] transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-secondary disabled:cursor-not-allowed disabled:opacity-50"
           >
             Reject suggestion
           </button>
@@ -456,14 +494,14 @@ export default function AdminSuggestionsPage() {
     <main className="mx-auto w-full max-w-4xl px-5 py-8 sm:px-8 sm:py-10">
       <Link
         href="/admin"
-        className="text-sm font-semibold text-[var(--color-heading)] transition hover:text-[var(--color-accent-text)]"
+        className="text-sm font-semibold text-[var(--color-heading)] transition hover:text-[var(--color-ink)]"
       >
         ← Admin workspace
       </Link>
 
-      <div className="mt-5 flex flex-wrap items-end justify-between gap-5 border-b border-black pb-6">
+      <div className="mt-5 flex flex-wrap items-end justify-between gap-5 border-b border-[var(--color-border-strong)] pb-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-accent-text)]">
+          <p className="kicker">
             Incoming
           </p>
 
@@ -477,7 +515,7 @@ export default function AdminSuggestionsPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-black bg-white px-4 py-3 text-center">
+        <div className="rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-4 py-3 text-center">
           <p className="text-2xl font-semibold">{suggestions.length}</p>
 
           <p className="text-xs uppercase tracking-wide text-[var(--color-muted)]">
@@ -495,14 +533,14 @@ export default function AdminSuggestionsPage() {
       {error && (
         <p
           role="alert"
-          className="mt-6 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
+          className="mt-6 alert-error"
         >
           {error}
         </p>
       )}
 
       {!loading && !error && suggestions.length === 0 && (
-        <p className="mt-8 rounded-2xl border border-black bg-white p-8 text-[var(--color-muted)]">
+        <p className="mt-8 rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] p-8 text-[var(--color-muted)]">
           No new suggestions to review.
         </p>
       )}

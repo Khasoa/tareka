@@ -43,10 +43,10 @@ export default function AdminDashboardPage() {
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-5 py-10 sm:px-8 sm:py-12">
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-black pb-8">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--color-border-strong)] pb-8">
         <div>
-          <p className="text-sm font-semibold tracking-wide text-[var(--color-accent-text)]">
-            tareka. / admin
+          <p className="kicker text-sm font-semibold tracking-wide">
+            tareka / admin
           </p>
 
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">
@@ -61,7 +61,7 @@ export default function AdminDashboardPage() {
         <button
           type="button"
           onClick={logout}
-          className="rounded-lg border border-black bg-white px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+          className="rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-4 py-2 text-sm font-medium transition hover:bg-[var(--color-ink)] hover:text-[var(--color-inverse)]"
         >
           Sign out
         </button>
@@ -70,7 +70,7 @@ export default function AdminDashboardPage() {
       {error && (
         <p
           role="alert"
-          className="mt-5 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
+          className="mt-5 alert-error"
         >
           {error}
         </p>
@@ -79,9 +79,9 @@ export default function AdminDashboardPage() {
       <div className="mt-10 grid gap-6 sm:grid-cols-2">
         <Link
           href="/admin/suggestions"
-          className="rounded-2xl border border-black bg-white p-6 transition hover:-translate-y-0.5"
+          className="rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] p-6 transition hover:-translate-y-0.5"
         >
-          <p className="text-sm font-semibold tracking-wide text-[var(--color-accent-text)]">
+          <p className="kicker text-sm font-semibold tracking-wide">
             INCOMING
           </p>
 
@@ -101,9 +101,9 @@ export default function AdminDashboardPage() {
 
         <Link
           href="/admin/claims"
-          className="rounded-2xl border border-black bg-white p-6 transition hover:-translate-y-0.5"
+          className="rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] p-6 transition hover:-translate-y-0.5"
         >
-          <p className="text-sm font-semibold tracking-wide text-[var(--color-accent-text)]">
+          <p className="kicker text-sm font-semibold tracking-wide">
             EXISTING LISTINGS
           </p>
 
