@@ -1,36 +1,130 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# tareka frontend
 
-## Getting Started
+The tareka web application is built with Next.js App Router, React, TypeScript and Tailwind CSS.
 
-First, run the development server:
+## Requirements
+
+- Node.js compatible with the installed Next.js release.
+- npm.
+
+Use the committed `package-lock.json` to install reproducible dependencies.
+
+## Local setup
+
+From the repository root:
+
+```bash
+cd web
+cp .env.example .env
+```
+
+Configure the local environment:
+
+```dotenv
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+`NEXT_PUBLIC_API_URL` must be the API origin, not an endpoint path. The client builds requests to routes such as `/businesses` and `/directory/materials`.
+
+`NEXT_PUBLIC_SITE_URL` is the canonical frontend origin used for metadata and sitemap URLs. It must be set to the real canonical origin in production.
+
+Install dependencies:
+
+```bash
+npm ci
+```
+
+Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit `http://localhost:3000`. The FastAPI service must also be running for API-backed directory functionality to work.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev       # Start the development server
+npm run lint      # Run ESLint
+npm run build     # Build the production application
+npm run start     # Serve a completed production build
+npm audit         # Review dependency security advisories
+npm audit --omit=dev
+```
 
-## Learn More
+Run `npm run build` before deploying. A successful build does not replace testing against the production API and database.
 
-To learn more about Next.js, take a look at the following resources:
+## Main routes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `/` — primary directory homepage.
+- `/directory` — directory route and query-parameter handling.
+- `/directory/[slug]` — public business profiles.
+- `/directory/[slug]/claim` — business claim submission.
+- `/how-it-works` — explanation of the directory.
+- `/suggest` — business suggestion form.
+- `/insights` — editorial content listing.
+- `/insights/[slug]` — individual Insight articles.
+- `/admin` and related admin routes — authenticated administration.
+- `/robots.txt` — crawler instructions.
+- `/sitemap.xml` — public URL discovery.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Admin routes must be protected by actual authentication and authorization. Disallowing a route in `robots.txt` does not make it private.
 
-## Deploy on Vercel
+## API connection
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The API client is in `src/lib/api.ts`. It uses `NEXT_PUBLIC_API_URL` as its base URL and applies a request timeout.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The frontend expects the API to provide directory data, business details, county and material reference data, and the submission endpoints used by suggestion and claim forms.
+
+For local development, run the API on port 8000 unless the frontend environment is configured for another origin.
+
+## Insights publishing
+
+The Insights library reads `.mdx` files from `content/insights/` relative to the frontend project root.
+
+Create an article at `content/insights/<slug>.mdx`, using frontmatter fields supported by `src/lib/insights.ts`:
+
+```md
+---
+title: "A descriptive article title"
+slug: "example-article"
+excerpt: "A concise summary of the article."
+category: "Recycling"
+published_at: "2026-10-17"
+---
+
+Article content goes here.
+```
+
+The slug must use lowercase letters, numbers and hyphens and must match the filename. The publication date must use `YYYY-MM-DD` and be a valid calendar date.
+
+Optional cover images use a path beginning with `/images/insights/`. When a cover image is supplied, provide meaningful `image_alt` text as required by the Insights validator.
+
+Preview the article locally, check links and imagery, and run the production build before publishing. Adding or changing content requires the relevant deployment/rebuild workflow.
+
+## SEO and production configuration
+
+The application generates `robots.txt` and `sitemap.xml`.
+
+Set the following variables in the Vercel project before the production build:
+
+- `NEXT_PUBLIC_SITE_URL` — canonical frontend origin, for example `https://your-chosen-domain.example`.
+- `NEXT_PUBLIC_API_URL` — production API origin, for example `https://your-api-service.example`.
+
+Replace these examples with the actual origins. Do not deploy the example domains.
+
+The sitemap contains configured public static pages and Insights articles. It also requests public business slugs from the API. If the API is unavailable, the sitemap should still return its static pages and articles, but business profile URLs may be missing until the API is available again.
+
+After changing production environment variables, rebuild/redeploy the frontend. Verify the actual deployed `https://your-domain/robots.txt` and `https://your-domain/sitemap.xml` rather than relying only on a local build.
+
+## Deployment
+
+Configure the Vercel project to use `web/` as its root directory. Use the package scripts defined in `package.json`; the standard production build command is:
+
+```bash
+npm run build
+```
+
+Before launch, verify the deployed frontend can reach the production API, that browser requests are allowed by API CORS settings, and that the canonical URL and metadata point to the intended domain.

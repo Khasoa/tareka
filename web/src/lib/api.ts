@@ -2,10 +2,36 @@ const API_URL = (
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 ).replace(/\/$/, "");
 
+const FETCH_TIMEOUT_MS = 8_000;
+
+async function fetchApi(
+  path: string,
+  init?: RequestInit,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+  try {
+    return await fetch(`${API_URL}${path}`, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export type Location = {
   id: number;
   county: string;
   town: string | null;
+};
+
+export type Material = {
+  id: number;
+  name: string;
+  slug: string;
+  parent_id: number | null;
 };
 
 export type Business = {
@@ -17,6 +43,8 @@ export type Business = {
   verification_status: string;
   last_verified_at: string | null;
   locations: Location[];
+  /** Present on list and detail responses. Older payloads may omit it. */
+  materials?: Material[];
 };
 
 export type BusinessDetail = Business & {
@@ -24,12 +52,8 @@ export type BusinessDetail = Business & {
   website_url: string | null;
   phone: string | null;
   email: string | null;
-  materials: {
-    id: number;
-    name: string;
-    slug: string;
-    parent_id: number | null;
-  }[];
+  image_url: string | null;
+  image_alt: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -45,7 +69,7 @@ export type BusinessListResponse = {
 export async function getBusinesses(
   params: URLSearchParams,
 ): Promise<BusinessListResponse> {
-  const response = await fetch(`${API_URL}/businesses?${params.toString()}`);
+  const response = await fetchApi(`/businesses?${params.toString()}`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch businesses");
@@ -57,7 +81,7 @@ export async function getBusinesses(
 export async function getBusiness(
   slug: string,
 ): Promise<BusinessDetail> {
-  const response = await fetch(`${API_URL}/businesses/${slug}`);
+  const response = await fetchApi(`/businesses/${slug}`);
 
   if (!response.ok) {
     throw new Error("Business not found");
@@ -67,7 +91,7 @@ export async function getBusiness(
 }
 
 export async function getCounties(): Promise<string[]> {
-  const response = await fetch(`${API_URL}/directory/counties`);
+  const response = await fetchApi(`/directory/counties`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch counties");
@@ -84,7 +108,7 @@ export async function getMaterials(): Promise<
     parent_id: number | null;
   }[]
 > {
-  const response = await fetch(`${API_URL}/directory/materials`);
+  const response = await fetchApi(`/directory/materials`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch materials");
@@ -140,7 +164,7 @@ async function getErrorMessage(
 export async function createSuggestion(
   data: SuggestionPayload,
 ): Promise<{ status: string }> {
-  const response = await fetch(`${API_URL}/api/suggestions`, {
+  const response = await fetchApi(`/api/suggestions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -164,8 +188,8 @@ export async function createClaim(
   businessId: number,
   data: ClaimPayload,
 ): Promise<{ status: string }> {
-  const response = await fetch(
-    `${API_URL}/api/businesses/${businessId}/claims`,
+  const response = await fetchApi(
+    `/api/businesses/${businessId}/claims`,
     {
       method: "POST",
       headers: {

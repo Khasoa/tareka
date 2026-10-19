@@ -1,38 +1,498 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-geist-sans);
+  --font-art: var(--font-paytone);
+  /* Handwritten hero script — Caveat (layout.tsx) */
+  --font-script: var(--font-caveat);
+}
+
+.font-art {
+  font-family: var(--font-art), var(--font-display), sans-serif;
+}
+
+/* Static optical echo: layered type with a subtle registration offset. */
+.hero-art {
+  display: block;
+  transform: rotate(-0.7deg) skewX(-0.4deg);
+  transform-origin: 50% 55%;
+  text-shadow:
+    0.012em 0.006em 0 rgba(10, 10, 10, 0.18),
+    0.026em 0.012em 0 rgba(10, 10, 10, 0.08),
+    -0.006em -0.004em 0 rgba(255, 255, 255, 0.55);
+}
+
+/* The lighter typeface is reserved for directory business names. */
+.business-card-title {
+  font-family: var(--font-overpass), sans-serif;
+}
+
+/* Hero headline: bold Geist for a cleaner, more consistent identity. */
+.hero-recycling-title {
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: clamp(2.55rem, 7.8vw, 4.5rem);
+  font-weight: 600;
+  letter-spacing: -0.040em;
+  line-height: 0.98;
+}
+
 :root {
-  --color-accent: #C4F0A5;
-  --color-accent-soft: #eff8f1;
-  --color-structural: #dde9df;
+  /* Core / semantic colour — one accent hue */
+  --color-accent: #A7E496;
+  --color-accent-soft: color-mix(in srgb, var(--color-accent) 22%, var(--color-paper));
 
   --color-ink: #0A0A0A;
   --color-heading: #000000;
   --color-body: #171717;
-  --color-muted: #4B4B4B;
+  --color-muted: #5C5C5C;
+  --color-inverse: #FFFFFF;
 
-  --color-paper: #FaFaFa;
-  --color-surface: #ffffff;
+  --color-paper: #FAFAFA;
+  --color-surface: #FFFFFF;
 
-  --color-border: #d9ddda;
-  --color-border-strong: #161a17;
+  --color-border: #DDDDDD;
+  --color-border-strong: #1A1A1A;
+
+  --color-danger: #8F1F1B;
+  --color-danger-soft: #F7EBEA;
+  --color-danger-border: #E2C4C2;
+
+  /* Typography scale */
+  --text-display: clamp(3.5rem, 10vw, 9rem);
+  --text-page-title: clamp(2rem, 3.8vw, 2.75rem);
+  --text-section-title: clamp(1.75rem, 3.2vw, 2.5rem);
+  --text-page-heading: var(--text-page-title);
+  --text-card-title: 1.375rem;
+  --text-body: 1rem;
+  --text-small: 0.875rem;
+  --text-label: 0.75rem;
+  --text-micro: 0.6875rem;
+
+  --leading-body: 1.6;
+  --leading-heading: 1.15;
+  --tracking-kicker: 0.2em;
+  --tracking-tight: -0.04em;
+
+  /* Layout rhythm */
+  --content-max-width: 90rem;
+  --page-gutter: clamp(1.25rem, 4vw, 3rem);
+  --section-space: clamp(3rem, 7vw, 6rem);
+
+  /* Borders and radii — related family, not one radius everywhere */
+  --border-width: 1px;
+  --radius-control: 0.5rem; /* selects, text fields */
+  --radius-panel: 0.75rem; /* business cards, form panels */
+  --radius-media: 1rem; /* materials exhibition cards */
+  --radius-chip: 0.75rem; /* status labels / small indicators */
+  --radius-search: 1.5rem; /* hero search — softest oval in the set */
+  --radius-circle: 9999px; /* CTAs, verified mark, icon buttons only */
+
+  --underline-thick: 3px;
+  --underline-thin: 2px;
+  --underline-offset: 4px;
+
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* Prefer brand ink over the browser’s default blue accent on controls */
+  accent-color: var(--color-ink);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
+  min-height: 100%;
   background-color: var(--color-paper);
   color: var(--color-body);
+  font-family: var(--font-sans), sans-serif;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 h1,
 h2,
-h3 {
+h3,
+h4,
+h5,
+h6 {
   color: var(--color-heading);
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  line-height: var(--leading-heading);
+}
+
+
+.section-heading {
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: var(--leading-heading);
+  color: var(--color-ink);
+}
+
+@media (min-width: 640px) {
+  .section-heading {
+    font-size: 1.875rem;
+  }
+}
+
+.page-heading {
+  font-family: var(--font-display), sans-serif;
+  font-size: var(--text-page-heading);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: var(--leading-heading);
+  color: var(--color-ink);
 }
 
 a {
   color: inherit;
 }
 
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
 select {
   color: var(--color-ink);
+  background-color: var(--color-surface);
+  accent-color: var(--color-ink);
+}
+
+select option,
+select optgroup {
+  color: var(--color-ink);
+  background-color: var(--color-surface);
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+::selection {
+  background-color: var(--color-accent);
+  color: var(--color-ink);
+}
+
+.kicker {
+  font-size: var(--text-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-kicker);
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.link-accent {
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: var(--underline-thick);
+  text-underline-offset: var(--underline-offset);
+  transition: color 150ms ease;
+}
+
+.link-accent:hover {
+  color: var(--color-ink);
+}
+
+.link-accent-quiet {
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: var(--underline-thin);
+  text-underline-offset: var(--underline-thin);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.25rem;
+  border: var(--border-width) solid var(--color-ink);
+  border-radius: var(--radius-circle);
+  background-color: var(--color-ink);
+  color: var(--color-inverse);
+  font-size: var(--text-small);
+  font-weight: 500;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    opacity 150ms ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-accent);
+  color: var(--color-ink);
+}
+
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.input-field:focus-visible,
+.select-field:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-ink);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.25rem;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-circle);
+  background-color: var(--color-surface);
+  color: var(--color-heading);
+  font-size: var(--text-small);
+  font-weight: 500;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-ink);
+  color: var(--color-inverse);
+}
+
+.input-field {
+  width: 100%;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  padding: 0.75rem;
+  outline: none;
+  accent-color: var(--color-ink);
+}
+
+.input-field:focus {
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--color-accent);
+}
+
+.select-field {
+  width: 100%;
+  min-height: 2.75rem;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  padding: 0.5rem 0.75rem;
+  outline: none;
+  accent-color: var(--color-ink);
+}
+
+.select-field:focus,
+.select-field:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-ink);
+  outline-offset: var(--focus-ring-offset);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+/* Hide the OS/WebKit search cancel so only the custom white control remains. */
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+/* Brand mark: bold Geist with a small circular green accent. */
+.wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+
+.wordmark-period {
+  display: inline-block;
+  width: 0.19em;
+  height: 0.19em;
+  margin-left: 0.07em;
+  margin-bottom: 0;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.wordmark-ghost {
+  font-size: 16vw;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: color-mix(in srgb, var(--color-ink) 5%, transparent);
+}
+
+@media (min-width: 640px) {
+  .wordmark-ghost {
+    font-size: 13vw;
+  }
+}
+
+.wordmark-ghost .wordmark-period {
+  opacity: 0.28;
+}
+
+.footer-surface {
+  background-color: var(--color-paper);
+  background-image:
+    radial-gradient(
+      ellipse 110% 70% at 50% 120%,
+      color-mix(in srgb, var(--color-ink) 2.8%, transparent),
+      transparent 58%
+    ),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.04 0 0 0 0 0.04 0 0 0 0 0.04 0 0 0 0.028 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: auto, 180px 180px;
+}
+
+.alert-error {
+  border: var(--border-width) solid var(--color-danger-border);
+  border-radius: var(--radius-control);
+  background-color: var(--color-danger-soft);
+  padding: 0.75rem 1rem;
+  font-size: var(--text-small);
+  color: var(--color-danger);
+}
+
+.panel {
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-panel);
+  background-color: var(--color-surface);
+}
+
+.notice {
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-panel);
+  background-color: var(--color-accent-soft);
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0 0.625rem;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-chip);
+  font-size: var(--text-micro);
+  color: var(--color-muted);
+}
+
+/* Hero — almost-imperceptible paper tooth; content stays fully readable without it */
+.hero-surface {
+  background-color: var(--color-paper);
+  background-image:
+    radial-gradient(
+      ellipse 120% 80% at 50% -20%,
+      color-mix(in srgb, var(--color-ink) 3.5%, transparent),
+      transparent 55%
+    ),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.04 0 0 0 0 0.04 0 0 0 0 0.04 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: auto, 180px 180px;
+}
+
+/* Handwritten “science” — light optical weight so art stays dominant */
+.hero-science {
+  text-shadow: 0 0.5px 0 color-mix(in srgb, var(--color-ink) 8%, transparent);
+}
+
+@keyframes hero-settle {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-enter {
+  animation: hero-settle 520ms ease-out both;
+}
+
+.hero-enter-delay-1 {
+  animation-delay: 40ms;
+}
+
+.hero-enter-delay-2 {
+  animation-delay: 90ms;
+}
+
+.hero-enter-delay-3 {
+  animation-delay: 130ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .hero-enter,
+  .hero-enter-delay-1,
+  .hero-enter-delay-2,
+  .hero-enter-delay-3 {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.search-clear,
+.search-clear:visited {
+  color: #ffffff !important;
+  opacity: 1;
+  text-decoration: none;
+}
+
+.search-clear:hover {
+  color: #ffffff !important;
+  opacity: 0.75;
+}
+
+.search-clear:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: -3px;
 }

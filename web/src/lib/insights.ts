@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import matter from "gray-matter";
+import matter from "@11ty/gray-matter";
 
 const INSIGHTS_DIR = path.join(process.cwd(), "content", "insights");
 

@@ -8,8 +8,8 @@ export default function TermsPage() {
       <Header />
 
       <main className="mx-auto w-full max-w-3xl px-6 py-12 sm:py-16">
-        <div className="border-b border-black pb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-accent-text)]">
+        <div className="border-b border-[var(--color-border-strong)] pb-8">
+          <p className="kicker">
             Legal
           </p>
 
@@ -25,11 +25,11 @@ export default function TermsPage() {
         <div className="mt-10 space-y-10 text-sm leading-7 text-[var(--color-body)]">
           <section>
             <h2 className="text-xl font-semibold text-[var(--color-heading)]">
-              1. About tareka.
+              1. About tareka
             </h2>
 
             <p className="mt-3">
-              tareka. is a directory designed to help people discover
+              tareka is a directory designed to help people discover
               businesses and organisations involved in recycling, collection,
               upcycling, reuse, and material recovery in Kenya.
             </p>
@@ -74,7 +74,7 @@ export default function TermsPage() {
             </h2>
 
             <p className="mt-3">
-              tareka. may research and verify business information using
+              tareka may research and verify business information using
               available evidence. A verification status indicates the state of
               our review at the relevant time; it does not constitute an
               endorsement, certification, accreditation, or guarantee of the
@@ -82,7 +82,7 @@ export default function TermsPage() {
             </p>
 
             <p className="mt-3">
-              A business&apos;s inclusion in the directory does not mean that tareka.
+              A business&apos;s inclusion in the directory does not mean that tareka
               has entered into a partnership with, employs, recommends, or
               financially represents that business.
             </p>
@@ -142,7 +142,7 @@ export default function TermsPage() {
             </h2>
 
             <p className="mt-3">
-              Information on tareka. may come from business representatives,
+              Information on tareka may come from business representatives,
               members of the public, public sources, and our own research.
               Although we aim to maintain accurate listings, we do not
               guarantee that every piece of information is complete, current,
@@ -150,7 +150,7 @@ export default function TermsPage() {
             </p>
 
             <p className="mt-3">
-              If you submit information or images to tareka. and provide the
+              If you submit information or images to tareka and provide the
               relevant consent, you confirm that you have the right to provide
               that material for the stated purpose and that doing so does not
               knowingly infringe another person&apos;s rights.
@@ -163,7 +163,7 @@ export default function TermsPage() {
             </h2>
 
             <p className="mt-3">
-              You must not use tareka. to:
+              You must not use tareka to:
             </p>
 
             <ul className="mt-3 list-disc space-y-2 pl-5">
@@ -183,7 +183,7 @@ export default function TermsPage() {
             </h2>
 
             <p className="mt-3">
-              tareka. does not control the businesses listed in the directory.
+              tareka does not control the businesses listed in the directory.
               Any transaction, visit, collection arrangement, purchase,
               delivery, service agreement, or other interaction between you and
               a listed business is between you and that business.
@@ -202,9 +202,9 @@ export default function TermsPage() {
             </h2>
 
             <p className="mt-3">
-              Unless otherwise indicated, the tareka. website, its branding,
+              Unless otherwise indicated, the tareka website, its branding,
               original interface design, original written content, software,
-              and other original materials are owned by or licensed to tareka.
+              and other original materials are owned by or licensed to tareka
               and may not be reproduced or commercially exploited without
               appropriate permission.
             </p>
@@ -222,7 +222,7 @@ export default function TermsPage() {
             </h2>
 
             <p className="mt-3">
-              We aim to keep tareka. available and reliable, but we do not
+              We aim to keep tareka available and reliable, but we do not
               guarantee uninterrupted access. We may modify, suspend, or
               temporarily restrict parts of the website for maintenance,
               security, improvements, or other operational reasons.
@@ -235,7 +235,7 @@ export default function TermsPage() {
             </h2>
 
             <p className="mt-3">
-              tareka. provides directory information on an informational basis.
+              tareka provides directory information on an informational basis.
               To the extent permitted by applicable law, we do not guarantee
               the accuracy, completeness, suitability, availability, or
               reliability of information supplied by or relating to third-party
@@ -254,7 +254,7 @@ export default function TermsPage() {
             </h2>
 
             <p className="mt-3">
-              To the extent permitted by applicable law, tareka. will not be
+              To the extent permitted by applicable law, tareka will not be
               responsible for losses, damages, disputes, or other consequences
               arising from your interactions with businesses listed in the
               directory or from reliance on information that has changed,
@@ -284,22 +284,22 @@ export default function TermsPage() {
             <p className="mt-3">
               Questions about these Terms of Use can be sent to{" "}
               <a
-                href="mailto:hello@tareka.co"
-                className="font-medium underline decoration-[#B9E4C4] decoration-2 underline-offset-2"
+                href="mailto:hello@tareka.directory"
+                className="font-medium underline decoration-[var(--color-accent)] decoration-2 underline-offset-2"
               >
-                hello@tareka.co
+                hello@tareka.directory
               </a>
               .
             </p>
           </section>
         </div>
 
-        <div className="mt-12 border-t border-black pt-6">
+        <div className="mt-12 border-t border-[var(--color-border-strong)] pt-6">
           <Link
             href="/"
-            className="text-sm font-medium underline decoration-[#B9E4C4] decoration-[3px] underline-offset-4 transition hover:text-[var(--color-accent-text)]"
+            className="link-accent text-sm font-medium"
           >
-            ← Back to tareka.
+            ← Back to tareka
           </Link>
         </div>
       </main>

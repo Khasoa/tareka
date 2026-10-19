@@ -1,25 +1,24 @@
-
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
+import DirectoryAnchor from "@/components/DirectoryAnchor";
+import Wordmark from "@/components/Wordmark";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
   const closeMenu = () => setOpen(false);
 
-  const textLinkClass =
-    "text-sm underline decoration-[#B9E4C4] decoration-2 underline-offset-4 transition-colors hover:text-[var(--color-accent-text)]";
-
   return (
-    <header className="border-b border-[var(--color-border)]">
+    <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-paper)]">
       <div className="mx-auto grid max-w-6xl grid-cols-3 items-center px-6 py-5">
         <Link
-          href="/directory"
+          href="/"
           onClick={closeMenu}
-          className="justify-self-start text-lg font-semibold tracking-tight text-[var(--color-ink)]"
+          aria-label="tareka home"
+          className="justify-self-start text-[1.25rem] font-semibold tracking-tight text-[var(--color-ink)] sm:text-[1.35rem]"
         >
-          tareka<span className="text-[var(--color-accent)]">.</span>
+          <Wordmark />
         </Link>
 
         <button
@@ -38,42 +37,38 @@ export default function Header() {
           </span>
         </button>
 
-        <Link
-          href="/directory#directory"
-          onClick={closeMenu}
-          style={{ color: "#fff" }}
-          className="justify-self-end rounded-full bg-[var(--color-ink)] px-4 py-2 text-sm font-medium transition-opacity hover:opacity-85"
+        <DirectoryAnchor
+          onNavigate={closeMenu}
+          className="btn-primary justify-self-end whitespace-nowrap px-3 text-xs sm:px-5 sm:text-sm"
         >
           Find a place
-        </Link>
+        </DirectoryAnchor>
       </div>
 
       {open && (
         <div className="border-t border-[var(--color-border)] px-6 py-10">
-          <div className="mx-auto max-w-3xl">
-            <p className="text-2xl font-semibold leading-snug sm:text-3xl">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="mx-auto max-w-2xl text-balance text-2xl font-semibold leading-snug sm:text-3xl">
               Waste is just a material waiting for its next life.
             </p>
           </div>
 
           <div className="mx-auto mt-10 grid max-w-6xl grid-cols-1 gap-x-10 gap-y-8 border-t border-[var(--color-border)] pt-10 sm:grid-cols-[2fr_1px_1fr_1px_1fr]">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-muted)]">
-                About
-              </p>
+              <p className="kicker">About</p>
 
               <p className="mt-3 max-w-md text-sm leading-relaxed text-[var(--color-muted)]">
-                tareka. is a directory of Kenya&apos;s recycling, collection
+                tareka is a directory of Kenya&apos;s recycling, collection
                 and upcycling businesses — a growing index of the people and
-                places keeping materials in motion. Listings are reviewed and
-                verified before publication.
+                places keeping materials in motion. Listings are researched
+                before they are published.
               </p>
 
               <div className="mt-4 flex flex-col items-start gap-3">
                 <Link
                   href="/how-it-works"
                   onClick={closeMenu}
-                  className={textLinkClass}
+                  className="link-accent text-sm"
                 >
                   How it works →
                 </Link>
@@ -81,7 +76,7 @@ export default function Header() {
                 <Link
                   href="/suggest"
                   onClick={closeMenu}
-                  className={textLinkClass}
+                  className="link-accent text-sm"
                 >
                   Suggest a business →
                 </Link>
@@ -91,16 +86,14 @@ export default function Header() {
             <div className="hidden bg-[var(--color-border)] sm:block" />
 
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-muted)]">
-                Explore
-              </p>
+              <p className="kicker">Explore</p>
 
               <ul className="mt-3 space-y-3 text-sm">
                 <li>
                   <Link
-                    href="/directory"
+                    href="/#directory"
                     onClick={closeMenu}
-                    className={textLinkClass}
+                    className="link-accent"
                   >
                     Directory →
                   </Link>
@@ -109,7 +102,7 @@ export default function Header() {
                   <Link
                     href="/insights"
                     onClick={closeMenu}
-                    className={textLinkClass}
+                    className="link-accent"
                   >
                     Insights →
                   </Link>
@@ -120,9 +113,7 @@ export default function Header() {
             <div className="hidden bg-[var(--color-border)] sm:block" />
 
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-muted)]">
-                Connect
-              </p>
+              <p className="kicker">Connect</p>
 
               <ul className="mt-3 space-y-3 text-sm text-[var(--color-ink)]">
                 <li>
@@ -130,15 +121,15 @@ export default function Header() {
                     href="https://www.linkedin.com/"
                     target="_blank"
                     rel="noreferrer"
-                    className="transition-colors hover:text-[var(--color-accent-text)]"
+                    className="transition-colors hover:text-[var(--color-muted)]"
                   >
                     LinkedIn <span aria-hidden="true">↗</span>
                   </a>
                 </li>
                 <li>
                   <a
-                    href="mailto:hello@tareka.co"
-                    className="transition-colors hover:text-[var(--color-accent-text)]"
+                    href="mailto:hello@tareka.directory"
+                    className="transition-colors hover:text-[var(--color-muted)]"
                   >
                     Contact <span aria-hidden="true">↗</span>
                   </a>

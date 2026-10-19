@@ -32,6 +32,8 @@ class Business(Base):
     website_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     email: Mapped[str | None] = mapped_column(String(320), nullable=True)
+    image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    image_alt: Mapped[str | None] = mapped_column(String(200), nullable=True)
 
     content_use_consent: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False

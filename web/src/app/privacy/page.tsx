@@ -8,8 +8,8 @@ export default function PrivacyPage() {
       <Header />
 
       <main className="mx-auto w-full max-w-3xl px-6 py-12 sm:py-16">
-        <div className="border-b border-black pb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-accent-text)]">
+        <div className="border-b border-[var(--color-border-strong)] pb-8">
+          <p className="kicker">
             Legal
           </p>
 
@@ -29,14 +29,14 @@ export default function PrivacyPage() {
             </h2>
 
             <p className="mt-3">
-              tareka. is a directory of recycling, collection, upcycling, and
+              tareka is a directory of recycling, collection, upcycling, and
               other material-recovery businesses in Kenya. This Privacy Policy
-              explains what information we collect when you use the tareka.
+              explains what information we collect when you use the tareka
               website, why we collect it, and how we use it.
             </p>
 
             <p className="mt-3">
-              By using the website or submitting information to tareka., you
+              By using the website or submitting information to tareka, you
               acknowledge the practices described in this policy.
             </p>
           </section>
@@ -79,7 +79,7 @@ export default function PrivacyPage() {
             </h2>
 
             <p className="mt-3">
-              tareka. is a public directory. Business information may be
+              tareka is a public directory. Business information may be
               researched from publicly available sources, provided by business
               representatives, or submitted by members of the public.
             </p>
@@ -152,7 +152,7 @@ export default function PrivacyPage() {
             </h2>
 
             <p className="mt-3">
-              Some forms on tareka. ask for explicit consent to use information
+              Some forms on tareka ask for explicit consent to use information
               or images supplied by a person submitting the information.
               Consent is used for the purpose stated in the relevant form.
             </p>
@@ -160,7 +160,7 @@ export default function PrivacyPage() {
             <p className="mt-3">
               Providing information to suggest a business does not by itself
               mean that the information will be published exactly as
-              submitted. Tareka. may research, edit, verify, or decline
+              submitted. tareka may research, edit, verify, or decline
               information before publication.
             </p>
           </section>
@@ -281,22 +281,22 @@ export default function PrivacyPage() {
             <p className="mt-3">
               If you have a privacy question or request, contact us at{" "}
               <a
-                href="mailto:hello@tareka.co"
-                className="font-medium underline decoration-[#B9E4C4] decoration-2 underline-offset-2"
+                href="mailto:hello@tareka.directory"
+                className="font-medium underline decoration-[var(--color-accent)] decoration-2 underline-offset-2"
               >
-                hello@tareka.co
+                hello@tareka.directory
               </a>
               .
             </p>
           </section>
         </div>
 
-        <div className="mt-12 border-t border-black pt-6">
+        <div className="mt-12 border-t border-[var(--color-border-strong)] pt-6">
           <Link
             href="/"
-            className="text-sm font-medium underline decoration-[#B9E4C4] decoration-[3px] underline-offset-4 transition hover:text-[var(--color-accent-text)]"
+            className="link-accent text-sm font-medium"
           >
-            ← Back to tareka.
+            ← Back to tareka
           </Link>
         </div>
       </main>

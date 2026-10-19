@@ -1,31 +1,68 @@
+import { Suspense } from "react";
+import HeroDirectorySearch from "@/components/HeroDirectorySearch";
+
 type HeroProps = { total: number; countiesCount: number };
 
 export default function Hero({ total, countiesCount }: HeroProps) {
   return (
-    <section className="bg-[var(--color-paper)]">
-      <div className="mx-auto max-w-3xl px-6 pb-14 pt-16 text-center">
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-muted)]">
-          Kenya · Recovery Directory · {total} businesses · {countiesCount} {countiesCount === 1 ? "county" : "counties"}
+    <section className="hero-surface relative overflow-hidden">
+      <div className="relative mx-auto max-w-5xl px-6 pb-8 pt-8 text-center sm:pb-10 sm:pt-10">
+        <p className="hero-enter text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--color-muted)] sm:text-xs">
+          Kenya · Recovery Directory · {total} businesses · {countiesCount}{" "}
+          {countiesCount === 1 ? "county" : "counties"}
         </p>
 
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
-          Recycling is an{" "}
-          <span className="inline-block -rotate-2 rounded-md border-[1.5px] border-[var(--color-border-strong)] bg-[var(--color-accent)] px-2 py-0.5 font-serif italic text-[var(--color-ink)] shadow-[3px_3px_0_var(--color-border-strong)]">
-            art
+        <h1 className="hero-enter hero-enter-delay-1 mt-6 sm:mt-7">
+          <span className="sr-only">
+            Recycling is art and science — discover verified recovery businesses
+            in Kenya
           </span>
-          .
+
+          <span
+            aria-hidden="true"
+            className="hero-recycling-title block text-[var(--color-ink)]"
+          >
+            Recycling is
+          </span>
+
+          {/*
+            Exhibition lockup: ghost “art” is the mass; ink “science” is a
+            smaller handwritten annotation across its optical centre.
+          */}
+          <span
+            aria-hidden="true"
+            className="relative -mt-4 block w-full select-none overflow-visible leading-none sm:-mt-5"
+          >
+            <span className="hero-art font-art mx-auto block w-fit text-[clamp(5.5rem,28vw,13rem)] font-normal leading-[0.78] tracking-[-0.02em] text-[var(--color-ink)]/[0.16]">              art
+            </span>
+            <span
+              className="hero-science pointer-events-none absolute left-1/2 top-[62%] whitespace-nowrap font-script text-[clamp(1.1rem,5.4vw,2.65rem)] font-normal leading-none tracking-[-0.03em] text-[var(--color-ink)]"
+              style={{
+                transform: "translate(calc(-50% - 0.10em), -50%) rotate(-8deg)",
+              }}
+            >
+              science
+            </span>
+          </span>
         </h1>
 
-        <p className="mx-auto mt-4 max-w-xl text-lg text-[var(--color-muted)]">
-          Discover where to take your waste — and who&apos;s turning it into something new.
+        <p className="hero-enter hero-enter-delay-2 mx-auto mt-5 max-w-lg text-base leading-relaxed text-[var(--color-muted)] sm:mt-6 sm:max-w-xl sm:text-lg sm:leading-relaxed">
+          Discover where to take your waste — and who&apos;s turning it into
+          something new.
         </p>
 
-        <a
-          href="#directory"
-          className="mt-6 inline-block text-sm font-medium underline decoration-[#B9E4C4] decoration-[3px] underline-offset-4"
-        >
-          Explore the directory →
-        </a>
+        <div className="hero-enter hero-enter-delay-3">
+          <Suspense
+            fallback={
+              <div
+                className="mx-auto mt-5 h-11 max-w-xl rounded-[var(--radius-search)] bg-[var(--color-ink)] sm:mt-6 sm:h-12"
+                aria-hidden="true"
+              />
+            }
+          >
+            <HeroDirectorySearch />
+          </Suspense>
+        </div>
       </div>
     </section>
   );

@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     secret_key: str
     environment: str = "development"
     frontend_origin: str = "http://localhost:3000"
+    # Extra browser origins, comma-separated. Used with FRONTEND_ORIGIN.
+    cors_origins: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",

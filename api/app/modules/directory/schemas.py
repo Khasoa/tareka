@@ -34,6 +34,7 @@ class BusinessListItem(BaseModel):
     verification_status: str
     last_verified_at: datetime | None = None
     locations: list[LocationResponse] = []
+    materials: list[MaterialResponse] = []
 
 
 class BusinessResponse(BaseModel):
@@ -50,6 +51,8 @@ class BusinessResponse(BaseModel):
     website_url: str | None = None
     phone: str | None = None
     email: str | None = None
+    image_url: str | None = None
+    image_alt: str | None = None
     locations: list[LocationResponse] = []
     materials: list[MaterialResponse] = []
     created_at: datetime

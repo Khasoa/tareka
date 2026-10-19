@@ -62,13 +62,13 @@ export default function AdminClaimsPage() {
 
   return (
     <main className="mx-auto w-full max-w-4xl px-5 py-8 sm:px-8 sm:py-10">
-      <Link href="/admin" className="text-sm font-semibold text-[var(--color-heading)] transition hover:text-[var(--color-accent-text)]">
+      <Link href="/admin" className="text-sm font-semibold text-[var(--color-heading)] transition hover:text-[var(--color-ink)]">
         ← Admin workspace
       </Link>
 
-      <div className="mt-5 flex flex-wrap items-end justify-between gap-5 border-b border-black pb-6">
+      <div className="mt-5 flex flex-wrap items-end justify-between gap-5 border-b border-[var(--color-border-strong)] pb-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-accent-text)]">
+          <p className="kicker">
             Existing listings
           </p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">Business claims</h1>
@@ -77,7 +77,7 @@ export default function AdminClaimsPage() {
             automatically change the listing.
           </p>
         </div>
-        <div className="rounded-xl border border-black bg-white px-4 py-3 text-center">
+        <div className="rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-4 py-3 text-center">
           <p className="text-2xl font-semibold">{claims.length}</p>
           <p className="text-xs uppercase tracking-wide text-[var(--color-muted)]">Pending</p>
         </div>
@@ -85,23 +85,23 @@ export default function AdminClaimsPage() {
 
       {loading && <p className="mt-8 text-sm text-[var(--color-muted)]">Loading claims…</p>}
       {error && (
-        <p role="alert" className="mt-6 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <p role="alert" className="mt-6 alert-error">
           {error}
         </p>
       )}
       {!loading && !error && claims.length === 0 && (
-        <p className="mt-8 rounded-2xl border border-black bg-white p-8 text-[var(--color-muted)]">
+        <p className="mt-8 rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] p-8 text-[var(--color-muted)]">
           No pending claims.
         </p>
       )}
 
       <div className="mt-8 space-y-6">
         {claims.map((claim) => (
-          <article key={claim.id} className="overflow-hidden rounded-2xl border border-black bg-white">
-            <div className="border-b border-black bg-[var(--color-accent-soft)] px-6 py-5">
+          <article key={claim.id} className="overflow-hidden rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-surface)]">
+            <div className="border-b border-[var(--color-border-strong)] bg-[var(--color-accent-soft)] px-6 py-5">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-accent-text)]">
+                  <p className="kicker">
                     Listing claim
                   </p>
                   <h2 className="mt-2 text-2xl font-semibold tracking-tight">{claim.business_name}</h2>
@@ -112,7 +112,7 @@ export default function AdminClaimsPage() {
                     Submitted {formatSubmittedAt(claim.submitted_at)}
                   </p>
                 </div>
-                <span className="rounded-full border border-black bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide">
+                <span className="rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-1 text-xs font-semibold uppercase tracking-wide">
                   Pending
                 </span>
               </div>
@@ -145,7 +145,7 @@ export default function AdminClaimsPage() {
               </dl>
 
               {claim.correction_note?.trim() && (
-                <div className="mt-6 rounded-xl border border-black bg-[var(--color-accent-soft)] p-4">
+                <div className="mt-6 rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-accent-soft)] p-4">
                   <p className="text-sm font-semibold text-[var(--color-heading)]">
                     Correction request requires separate review
                   </p>
@@ -160,14 +160,14 @@ export default function AdminClaimsPage() {
                 <button
                   type="button"
                   onClick={() => reviewClaim(claim, "approve")}
-                  className="rounded-lg border border-black bg-black px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-accent)] hover:text-[var(--color-heading)]"
+                  className="btn-primary"
                 >
                   Approve claim
                 </button>
                 <button
                   type="button"
                   onClick={() => reviewClaim(claim, "reject")}
-                  className="rounded-lg border border-black bg-white px-5 py-2.5 text-sm font-semibold text-[var(--color-heading)] transition hover:bg-black hover:text-white"
+                  className="rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-5 py-2.5 text-sm font-semibold text-[var(--color-heading)] transition hover:bg-[var(--color-ink)] hover:text-[var(--color-inverse)]"
                 >
                   Reject claim
                 </button>

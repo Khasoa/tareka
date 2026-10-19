@@ -46,6 +46,8 @@ class PublishSuggestionRequest(BaseModel):
     town: str | None = Field(default=None, max_length=100)
     website_url: str | None = Field(default=None, max_length=500)
     phone: str | None = Field(default=None, max_length=50)
+    image_url: str | None = Field(default=None, max_length=500)
+    image_alt: str | None = Field(default=None, max_length=200)
     material_ids: list[int] = Field(default_factory=list)
 
 
@@ -300,10 +302,21 @@ def publish_suggestion(
         raise HTTPException(status_code=422, detail="Invalid drop-off value.")
 
     website_url = None
+    image_url = None
     try:
         website_url = validate_http_url(body.website_url)
+        image_url = validate_http_url(body.image_url)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    image_alt = (body.image_alt or "").strip() or None
+    if image_url and not image_alt:
+        raise HTTPException(
+            status_code=422,
+            detail="An image needs a short description for screen readers.",
+        )
+    if image_alt and not image_url:
+        image_alt = None
 
     material_ids = set(body.material_ids)
     materials = (
@@ -326,6 +339,8 @@ def publish_suggestion(
         description=body.description.strip(),
         website_url=website_url,
         phone=(body.phone or suggestion.phone or "").strip() or None,
+        image_url=image_url,
+        image_alt=image_alt,
         source_type="admin_research",
         source_url=suggestion.source_url,
         verification_status="unverified",

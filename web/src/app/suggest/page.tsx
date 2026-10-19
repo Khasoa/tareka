@@ -81,12 +81,12 @@ export default function SuggestPage() {
         <Header />
 
         <main className="mx-auto w-full max-w-xl px-6 py-16 sm:py-20">
-          <div className="rounded-2xl border border-black bg-white p-8 sm:p-10">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-accent-text)]">
+          <div className="panel p-8 sm:p-10">
+            <p className="kicker">
               Suggestion received
             </p>
 
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+            <h1 className="page-heading mt-3">
               Thank you.
             </h1>
 
@@ -98,15 +98,15 @@ export default function SuggestPage() {
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                href="/directory"
-                className="rounded-full border border-black bg-black px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[var(--color-accent)] hover:text-[var(--color-heading)]"
+                href="/#directory"
+                className="btn-primary"
               >
                 Browse directory
               </Link>
 
               <Link
                 href="/"
-                className="rounded-full border border-black bg-white px-5 py-2.5 text-sm font-medium text-[var(--color-heading)] transition hover:bg-black hover:text-white"
+                className="btn-secondary"
               >
                 Back home
               </Link>
@@ -122,12 +122,12 @@ export default function SuggestPage() {
       <Header />
 
       <main className="mx-auto w-full max-w-2xl px-6 py-12 sm:py-16">
-        <div className="border-b border-black pb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-accent-text)]">
+        <div className="border-b border-[var(--color-border-strong)] pb-8">
+          <p className="kicker">
             Community contribution
           </p>
 
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h1 className="page-heading mt-3">
             Suggest a business
           </h1>
 
@@ -140,7 +140,7 @@ export default function SuggestPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="mt-8 rounded-2xl border border-black bg-white p-6 sm:p-8"
+          className="panel mt-8 p-6 sm:p-8"
         >
           <div
             aria-hidden="true"
@@ -180,7 +180,7 @@ export default function SuggestPage() {
                 onChange={(event) =>
                   update("name", event.target.value)
                 }
-                className="w-full rounded-lg border border-black bg-white px-3 py-3 outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+                className="input-field"
               />
             </div>
 
@@ -201,7 +201,7 @@ export default function SuggestPage() {
                 onChange={(event) =>
                   update("county", event.target.value)
                 }
-                className="w-full rounded-lg border border-black bg-white px-3 py-3 outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+                className="input-field"
               />
             </div>
 
@@ -222,7 +222,7 @@ export default function SuggestPage() {
                   update("description_raw", event.target.value)
                 }
                 placeholder="For example, collects plastic waste or turns organic waste into animal feed."
-                className="w-full resize-y rounded-lg border border-black bg-white px-3 py-3 outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+                className="input-field resize-y"
               />
             </div>
 
@@ -243,7 +243,7 @@ export default function SuggestPage() {
                   update("materials_raw", event.target.value)
                 }
                 placeholder="e.g. PET bottles, cardboard, organic waste"
-                className="w-full rounded-lg border border-black bg-white px-3 py-3 outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+                className="input-field"
               />
             </div>
 
@@ -265,7 +265,7 @@ export default function SuggestPage() {
                   update("source_url", event.target.value)
                 }
                 placeholder="https://..."
-                className="w-full rounded-lg border border-black bg-white px-3 py-3 outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+                className="input-field"
               />
 
               <p className="mt-2 text-xs leading-5 text-[var(--color-muted)]">
@@ -293,7 +293,7 @@ export default function SuggestPage() {
                 onChange={(event) =>
                   update("phone", event.target.value)
                 }
-                className="w-full rounded-lg border border-black bg-white px-3 py-3 outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+                className="input-field"
               />
             </div>
 
@@ -316,7 +316,7 @@ export default function SuggestPage() {
                 onChange={(event) =>
                   update("submitter_email", event.target.value)
                 }
-                className="w-full rounded-lg border border-black bg-white px-3 py-3 outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+                className="input-field"
               />
 
               <p className="mt-2 text-xs leading-5 text-[var(--color-muted)]">
@@ -344,7 +344,7 @@ export default function SuggestPage() {
                 onChange={(event) =>
                   update("submitter_note", event.target.value)
                 }
-                className="w-full resize-y rounded-lg border border-black bg-white px-3 py-3 outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+                className="input-field resize-y"
               />
             </div>
           </div>
@@ -352,7 +352,7 @@ export default function SuggestPage() {
           {status === "error" && (
             <p
               role="alert"
-              className="mt-6 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
+              className="mt-6 alert-error"
             >
               {error}
             </p>
@@ -362,7 +362,7 @@ export default function SuggestPage() {
             <button
               type="submit"
               disabled={status === "sending"}
-              className="rounded-full border border-black bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-accent)] hover:text-[var(--color-heading)] disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-primary"
             >
               {status === "sending"
                 ? "Sending…"

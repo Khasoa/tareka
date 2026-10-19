@@ -1,107 +1,104 @@
 import Link from "next/link";
+import DirectoryAnchor from "@/components/DirectoryAnchor";
+import Wordmark from "@/components/Wordmark";
 
 export default function Footer() {
   return (
-    <footer className="relative isolate overflow-hidden border-t border-[var(--color-border)] bg-[var(--color-paper)] px-6 py-16">
+    <footer className="footer-surface relative isolate overflow-hidden border-t border-[var(--color-border)] px-6 py-12 sm:py-14">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 top-16 flex items-end justify-center overflow-hidden"
+        className="pointer-events-none absolute inset-x-0 bottom-0 top-10 flex items-end justify-center overflow-hidden"
         style={{
-          maskImage: "linear-gradient(to bottom, black 55%, transparent 95%)",
+          maskImage:
+            "linear-gradient(to bottom, var(--color-ink) 40%, transparent 92%)",
           WebkitMaskImage:
-            "linear-gradient(to bottom, black 55%, transparent 95%)",
+            "linear-gradient(to bottom, var(--color-ink) 40%, transparent 92%)",
         }}
       >
-        <span className="select-none whitespace-nowrap text-[16vw] font-bold leading-none tracking-tight text-[var(--color-ink)]/[0.05] sm:text-[13vw]">
-          tareka.
-        </span>
+        <Wordmark className="wordmark-ghost select-none" />
       </div>
 
       <div className="relative mx-auto max-w-6xl">
-        <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-xs">
-            <span className="text-lg font-semibold tracking-tight text-[var(--color-ink)]">
-              tareka<span className="text-[var(--color-accent)]">.</span>
+            <span
+              className="text-xl tracking-tight text-[var(--color-ink)] sm:text-[1.5rem]"
+              aria-label="tareka"
+            >
+              <Wordmark />
             </span>
 
             <p className="mt-2 text-sm text-[var(--color-muted)]">
               Kenya&apos;s recovery directory.
             </p>
 
-            <p className="mt-3 text-xs text-[var(--color-muted)]">
-              © {new Date().getFullYear()} tareka. All rights reserved.
+            <p
+              className="mt-3 text-xs text-[var(--color-muted)]"
+              suppressHydrationWarning
+            >
+              © {new Date().getFullYear()} tareka — all rights reserved.
             </p>
           </div>
 
-          <div className="flex flex-col gap-5 sm:items-end">
-            <nav
-              aria-label="Footer navigation"
-              className="flex flex-wrap gap-x-6 gap-y-2 text-sm"
-            >
-              <Link
-                href="/directory"
-                className="text-[var(--color-ink)] underline decoration-[#B9E4C4] decoration-[3px] underline-offset-4 transition-colors hover:text-[var(--color-accent-text)]"
-              >
-                Directory
-              </Link>
+          <div className="flex flex-col gap-3 sm:items-end">
+            <nav aria-label="Directory" className="text-sm sm:text-right">
+              <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 sm:justify-end">
+                <li>
+                  <Link href="/#directory" className="link-accent text-[var(--color-ink)]">
+                    Directory
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/insights" className="link-accent text-[var(--color-ink)]">
+                    Insights
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/suggest" className="link-accent text-[var(--color-ink)]">
+                    Suggest a business
+                  </Link>
+                </li>
+              </ul>
+            </nav>
 
-              <Link
-                href="/insights"
-                className="text-[var(--color-ink)] underline decoration-[#B9E4C4] decoration-[3px] underline-offset-4 transition-colors hover:text-[var(--color-accent-text)]"
-              >
-                Insights
-              </Link>
-
-              <Link
-                href="/suggest"
-                className="text-[var(--color-ink)] underline decoration-[#B9E4C4] decoration-[3px] underline-offset-4 transition-colors hover:text-[var(--color-accent-text)]"
-              >
-                Suggest a business
-              </Link>
-
-              <a
-                href="https://www.linkedin.com/"
-                target="_blank"
-                rel="noreferrer"
-                className="text-[var(--color-ink)] transition-colors hover:text-[var(--color-accent-text)]"
-              >
-                LinkedIn <span aria-hidden="true">↗</span>
-              </a>
-
-              <a
-                href="mailto:hello@tareka.co"
-                className="text-[var(--color-ink)] transition-colors hover:text-[var(--color-accent-text)]"
-              >
-                Contact <span aria-hidden="true">↗</span>
-              </a>
+            <nav aria-label="Connect" className="text-sm sm:text-right">
+              <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 sm:justify-end">
+                <li>
+                  <a
+                    href="mailto:hello@tareka.directory"
+                    className="text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)]"
+                  >
+                    Contact <span aria-hidden="true">↗</span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.linkedin.com/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)]"
+                  >
+                    LinkedIn <span aria-hidden="true">↗</span>
+                  </a>
+                </li>
+              </ul>
             </nav>
 
             <nav
               aria-label="Legal"
-              className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-[var(--color-muted)]"
+              className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-[var(--color-muted)] sm:justify-end"
             >
-              <Link
-                href="/privacy"
-                className="underline decoration-[#B9E4C4] decoration-2 underline-offset-2"
-              >
+              <Link href="/privacy" className="link-accent-quiet">
                 Privacy
               </Link>
-
-              <Link
-                href="/terms"
-                className="underline decoration-[#B9E4C4] decoration-2 underline-offset-2"
-              >
+              <Link href="/terms" className="link-accent-quiet">
                 Terms
               </Link>
             </nav>
 
-            <Link
-              href="/directory#directory"
-              style={{ color: "#fff" }}
-              className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--color-ink)] px-5 py-2.5 text-sm font-medium transition-opacity hover:opacity-85"
-            >
+            <DirectoryAnchor className="btn-primary mt-1 w-fit">
               Find a place
-            </Link>
+            </DirectoryAnchor>
           </div>
         </div>
       </div>

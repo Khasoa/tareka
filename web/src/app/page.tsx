@@ -1,53 +1,108 @@
-"use client";
+import { Suspense } from "react";
+import Header from "@/components/Header";
+import Hero from "@/components/Hero";
+import DirectoryHome from "@/components/DirectoryHome";
+import {
+  getBusinesses,
+  getCounties,
+  getMaterials,
+  type BusinessListResponse,
+} from "@/lib/api";
 
-import { useEffect, useState } from "react";
+export const dynamic = "force-dynamic";
 
-type HealthResponse = {
-  status: string;
-  database: string;
+const EMPTY_BUSINESSES: BusinessListResponse = {
+  items: [],
+  page: 1,
+  page_size: 12,
+  total: 0,
+  total_pages: 0,
 };
 
-export default function Home() {
-  const [health, setHealth] = useState<HealthResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
+type SearchParams = Record<string, string | string[] | undefined>;
 
-  useEffect(() => {
-    fetch("http://localhost:8000/health")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("API request failed");
-        }
+function first(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] ?? "";
+  return value ?? "";
+}
 
-        return response.json();
-      })
-      .then((data: HealthResponse) => {
-        setHealth(data);
-      })
-      .catch(() => {
-        setError("Could not connect to the Tareka API.");
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  let directoryTotal = 0;
+  let countiesCount = 0;
+  let businessData: BusinessListResponse = EMPTY_BUSINESSES;
+  let counties: string[] = [];
+  let materials: Awaited<ReturnType<typeof getMaterials>> = [];
+  let listKey = "directory";
+
+  try {
+    const sp = await searchParams;
+    const query = first(sp.q).trim();
+    const county = first(sp.county).trim();
+    const dropoff = first(sp.accepts_public_dropoff).trim();
+    const businessType = first(sp.business_type).trim();
+    const materialSlug = first(sp.material).trim();
+    const materialId = first(sp.material_id).trim();
+
+    const [unfiltered, countyList, materialList] = await Promise.all([
+      getBusinesses(new URLSearchParams({ page: "1", page_size: "12" })),
+      getCounties(),
+      getMaterials(),
+    ]);
+
+    counties = countyList;
+    materials = materialList;
+    directoryTotal = unfiltered.total;
+    countiesCount = countyList.length;
+    businessData = unfiltered;
+
+    const selectedMaterial =
+      materialList.find((material) => material.slug === materialSlug) ??
+      materialList.find((material) => String(material.id) === materialId);
+
+    listKey = [
+      query,
+      county,
+      dropoff,
+      businessType,
+      selectedMaterial?.slug ?? "",
+    ].join("|");
+
+    if (query || county || dropoff || businessType || selectedMaterial) {
+      const filtered = new URLSearchParams({
+        page: "1",
+        page_size: "12",
       });
-  }, []);
+      if (query) filtered.set("q", query);
+      if (county) filtered.set("county", county);
+      if (dropoff) filtered.set("accepts_public_dropoff", dropoff);
+      if (businessType) filtered.set("business_type", businessType);
+      if (selectedMaterial) {
+        filtered.set("material_id", String(selectedMaterial.id));
+      }
+      businessData = await getBusinesses(filtered);
+    }
+  } catch {
+    // Keep the homepage renderable when the API is unreachable (CI builds,
+    // cold starts). DirectoryHome retries in the browser.
+  }
 
   return (
-    <main className="min-h-screen p-10">
-      <h1 className="text-3xl font-bold">Tareka</h1>
-
-      <p className="mt-4">
-        Verified recycling and waste-management information for Kenya.
-      </p>
-
-      <section className="mt-8">
-        <h2 className="text-xl font-semibold">System Status</h2>
-
-        {error && <p className="mt-2">{error}</p>}
-
-        {health && (
-          <div className="mt-2">
-            <p>API: {health.status}</p>
-            <p>Database: {health.database}</p>
-          </div>
-        )}
-      </section>
-    </main>
+    <>
+      <Header />
+      <Hero total={directoryTotal} countiesCount={countiesCount} />
+      <Suspense fallback={null}>
+        <DirectoryHome
+          key={listKey}
+          initialBusinesses={businessData.items}
+          initialTotal={businessData.total}
+          counties={counties}
+          materials={materials}
+        />
+      </Suspense>
+    </>
   );
 }

@@ -53,7 +53,7 @@ export default function ClaimForm({ businessId }: ClaimFormProps) {
     if (!form.content_use_consent) {
       setStatus("error");
       setError(
-        "Please confirm that tareka. may use the information you provide for reviewing and managing this claim.",
+        "Please confirm that tareka may use the information you provide for reviewing and managing this claim.",
       );
       return;
     }
@@ -85,10 +85,8 @@ export default function ClaimForm({ businessId }: ClaimFormProps) {
 
   if (status === "done") {
     return (
-      <div className="mt-8 rounded-2xl border border-black bg-white p-6 sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-accent-text)]">
-          Claim received
-        </p>
+      <div className="panel mt-8 p-6 sm:p-8">
+        <p className="kicker">Claim received</p>
 
         <h2 className="mt-3 text-2xl font-semibold tracking-tight">
           Thank you.
@@ -101,8 +99,8 @@ export default function ClaimForm({ businessId }: ClaimFormProps) {
         </p>
 
         <Link
-          href="/directory"
-          className="mt-7 inline-flex rounded-full border border-black bg-black px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[var(--color-accent)] hover:text-[var(--color-heading)]"
+          href="/#directory"
+          className="btn-primary mt-7"
         >
           Back to directory
         </Link>
@@ -113,7 +111,7 @@ export default function ClaimForm({ businessId }: ClaimFormProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-8 rounded-2xl border border-black bg-white p-6 sm:p-8"
+      className="panel mt-8 p-6 sm:p-8"
     >
       <div
         aria-hidden="true"
@@ -153,7 +151,7 @@ export default function ClaimForm({ businessId }: ClaimFormProps) {
             onChange={(event) =>
               update("claimant_name", event.target.value)
             }
-            className="w-full rounded-lg border border-black bg-white px-3 py-3 outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+            className="input-field"
           />
         </div>
 
@@ -175,7 +173,7 @@ export default function ClaimForm({ businessId }: ClaimFormProps) {
               update("claimant_role", event.target.value)
             }
             placeholder="e.g. Owner, Manager, Director"
-            className="w-full rounded-lg border border-black bg-white px-3 py-3 outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+            className="input-field"
           />
         </div>
 
@@ -197,7 +195,7 @@ export default function ClaimForm({ businessId }: ClaimFormProps) {
               update("claimant_contact", event.target.value)
             }
             placeholder="Email address, phone number, or another way we can verify the claim."
-            className="w-full resize-y rounded-lg border border-black bg-white px-3 py-3 outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+            className="input-field resize-y"
           />
         </div>
 
@@ -221,7 +219,7 @@ export default function ClaimForm({ businessId }: ClaimFormProps) {
               update("correction_note", event.target.value)
             }
             placeholder="Tell us about any information that is incorrect or missing."
-            className="w-full resize-y rounded-lg border border-black bg-white px-3 py-3 outline-none transition focus:ring-2 focus:ring-[var(--color-accent)]"
+            className="input-field resize-y"
           />
         </div>
 
@@ -236,12 +234,12 @@ export default function ClaimForm({ businessId }: ClaimFormProps) {
                   event.target.checked,
                 )
               }
-              className="mt-1 size-4 accent-black"
+              className="mt-1 size-4 accent-[var(--color-ink)]"
             />
 
             <span className="text-sm leading-6">
               I confirm that I am submitting this information for
-              review and give tareka. permission to use the information
+              review and give tareka permission to use the information
               I provide for managing this claim and the listing.
             </span>
           </label>
@@ -253,11 +251,11 @@ export default function ClaimForm({ businessId }: ClaimFormProps) {
               onChange={(event) =>
                 update("image_consent", event.target.checked)
               }
-              className="mt-1 size-4 accent-black"
+              className="mt-1 size-4 accent-[var(--color-ink)]"
             />
 
             <span className="text-sm leading-6">
-              I give tareka. permission to use images I provide in
+              I give tareka permission to use images I provide in
               connection with this listing.
               <span className="ml-1 text-[var(--color-muted)]">
                 (optional)
@@ -270,7 +268,7 @@ export default function ClaimForm({ businessId }: ClaimFormProps) {
       {status === "error" && (
         <p
           role="alert"
-          className="mt-6 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
+          className="mt-6 alert-error"
         >
           {error}
         </p>
@@ -280,7 +278,7 @@ export default function ClaimForm({ businessId }: ClaimFormProps) {
         <button
           type="submit"
           disabled={status === "sending"}
-          className="rounded-full border border-black bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-accent)] hover:text-[var(--color-heading)] disabled:cursor-not-allowed disabled:opacity-60"
+          className="btn-primary"
         >
           {status === "sending"
             ? "Submitting…"
