@@ -10,13 +10,13 @@ export default function Header() {
   const closeMenu = () => setOpen(false);
 
   return (
-    <header className="border-b border-[var(--color-border)]">
+    <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-paper)]">
       <div className="mx-auto grid max-w-6xl grid-cols-3 items-center px-6 py-5">
         <Link
           href="/"
           onClick={closeMenu}
           aria-label="tareka home"
-          className="justify-self-start text-[1.25rem] font-semibold tracking-tight text-[var(--color-ink)] sm:text-[1.5rem]"
+          className="justify-self-start text-[1.25rem] font-semibold tracking-tight text-[var(--color-ink)] sm:text-[1.35rem]"
         >
           <Wordmark />
         </Link>
@@ -47,8 +47,8 @@ export default function Header() {
 
       {open && (
         <div className="border-t border-[var(--color-border)] px-6 py-10">
-          <div className="mx-auto max-w-3xl">
-            <p className="text-2xl font-semibold leading-snug sm:text-3xl">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="mx-auto max-w-2xl text-balance text-2xl font-semibold leading-snug sm:text-3xl">
               Waste is just a material waiting for its next life.
             </p>
           </div>

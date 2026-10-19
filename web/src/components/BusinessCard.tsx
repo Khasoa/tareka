@@ -37,7 +37,7 @@ export default function BusinessCard({
       </div>
 
       <div className="mt-5 flex-1">
-        <h3 className="font-display text-xl font-semibold leading-tight tracking-[-0.04em] text-[var(--color-ink)] sm:text-2xl">
+        <h3 className="business-card-title text-xl font-semibold leading-tight tracking-[-0.04em] text-[var(--color-ink)] sm:text-2xl">
           <Link
             href={`/directory/${business.slug}`}
             className="outline-none transition-opacity hover:opacity-80 focus-visible:underline focus-visible:decoration-[var(--color-ink)] focus-visible:decoration-2 focus-visible:underline-offset-4"

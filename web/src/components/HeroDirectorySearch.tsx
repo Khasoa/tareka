@@ -2,6 +2,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export default function HeroDirectorySearch() {
@@ -38,10 +39,11 @@ export default function HeroDirectorySearch() {
     commitQuery(value);
   }
 
-  function handleClear() {
-    setValue("");
-    commitQuery("");
-  }
+  const clearParams = new URLSearchParams(searchParams.toString());
+  clearParams.delete("q");
+  const clearHref = clearParams.toString()
+    ? `${pathname}?${clearParams.toString()}`
+    : pathname;
 
   return (
     <form
@@ -59,21 +61,32 @@ export default function HeroDirectorySearch() {
           type="search"
           name="q"
           value={value}
-          onChange={(event) => setValue(event.currentTarget.value)}
+          onChange={(event) => {
+            const next = event.currentTarget.value;
+            setValue(next);
+            if (next.trim() === "") {
+              commitQuery("");
+            }
+          }}
           placeholder="Search the directory…"
           autoComplete="off"
           className="min-h-11 min-w-0 w-full flex-1 bg-transparent px-4 text-sm text-[var(--color-inverse)] outline-none placeholder:text-[var(--color-inverse)]/45 sm:min-h-12 sm:px-6 sm:text-base"
         />
 
         {value ? (
-          <button
-            type="button"
+          <Link
+            href={clearHref}
+            scroll={false}
             aria-label="Clear search"
-            onClick={handleClear}
-            className="shrink-0 px-2 text-lg leading-none text-[var(--color-inverse)]/70 hover:text-[var(--color-inverse)]"
+            onClick={(event) => {
+              event.preventDefault();
+              setValue("");
+              commitQuery("");
+            }}
+            className="search-clear flex min-h-11 min-w-11 shrink-0 items-center justify-center px-3 text-2xl font-normal leading-none no-underline sm:min-h-12"
           >
             ×
-          </button>
+          </Link>
         ) : null}
 
         <button

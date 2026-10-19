@@ -82,6 +82,7 @@ export default function DirectoryHome({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const skipInitialUnfilteredFetch = useRef(true);
+  const initialTotalRef = useRef(initialTotal);
 
   function replaceFilterParams(
     patch: Record<string, string | null | undefined>,
@@ -110,15 +111,21 @@ export default function DirectoryHome({
     // request. A query or filter already in the URL still needs a fetch,
     // including when search params arrive after the first render.
     if (skipInitialUnfilteredFetch.current) {
-      (window as unknown as { __tareka?: string }).__tareka =
-        `skip query=${query}`;
       skipInitialUnfilteredFetch.current = false;
-      if (!query && !county && !dropoff && !businessType && !selectedMaterial) {
+      // Skip only the duplicate unfiltered first page. If the URL already has
+      // a query/filter, or the server could not load listings, fetch now.
+      if (
+        !query &&
+        !county &&
+        !dropoff &&
+        !businessType &&
+        !selectedMaterial &&
+        initialTotalRef.current > 0
+      ) {
         return;
       }
     }
 
-    (window as unknown as { __tareka?: string }).__tareka = `fetch query=${query}`;
     let cancelled = false;
 
     async function loadFilteredBusinesses() {
@@ -246,7 +253,7 @@ export default function DirectoryHome({
           )}
         </div>
 
-        <div className="grid gap-3 border-b border-[var(--color-border)] py-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 py-5 sm:grid-cols-2 lg:grid-cols-3">
           <label className="flex flex-col gap-2 text-xs text-[var(--color-muted)]">
             County
             <select
@@ -329,7 +336,7 @@ export default function DirectoryHome({
 
         <div
           aria-busy={loading}
-          className="grid grid-cols-1 gap-x-5 gap-y-0 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-3 lg:gap-x-8"
+          className="grid grid-cols-1 gap-x-5 gap-y-5 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-6 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-7"
         >
           {businesses.map((business, index) => (
             <BusinessCard

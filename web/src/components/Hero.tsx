@@ -20,7 +20,7 @@ export default function Hero({ total, countiesCount }: HeroProps) {
 
           <span
             aria-hidden="true"
-            className="block font-display text-[2.35rem] font-bold leading-[1.05] tracking-[-0.02em] text-[var(--color-ink)] sm:text-[3.15rem] md:text-[3.5rem]"
+            className="hero-recycling-title block text-[var(--color-ink)]"
           >
             Recycling is
           </span>
@@ -31,15 +31,15 @@ export default function Hero({ total, countiesCount }: HeroProps) {
           */}
           <span
             aria-hidden="true"
-            className="relative mt-1 block w-full select-none overflow-visible leading-none sm:mt-2"
+            className="relative -mt-4 block w-full select-none overflow-visible leading-none sm:-mt-5"
           >
-            <span className="mx-auto block w-fit font-display text-[clamp(5.25rem,26vw,12.5rem)] font-semibold leading-[0.82] tracking-[-0.03em] text-[var(--color-ink)]/[0.16]">
+            <span className="font-art mx-auto block w-fit text-[clamp(5.5rem,28vw,13rem)] font-normal leading-[0.78] tracking-[-0.02em] text-[var(--color-ink)]/[0.16]">
               art
             </span>
             <span
-              className="hero-science pointer-events-none absolute left-1/2 top-[48%] whitespace-nowrap font-script text-[clamp(1.1rem,5.4vw,2.65rem)] font-normal leading-none tracking-[-0.02em] text-[var(--color-ink)]"
+              className="hero-science pointer-events-none absolute left-1/2 top-[62%] whitespace-nowrap font-script text-[clamp(1.1rem,5.4vw,2.65rem)] font-normal leading-none tracking-[-0.03em] text-[var(--color-ink)]"
               style={{
-                transform: "translate(-50%, -50%) rotate(-2deg)",
+                transform: "translate(calc(-50% - 0.10em), -50%) rotate(-8deg)",
               }}
             >
               science

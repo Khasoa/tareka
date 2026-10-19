@@ -4,9 +4,39 @@
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-overpass);
+  --font-display: var(--font-geist-sans);
+  --font-art: var(--font-paytone);
   /* Handwritten hero script — Caveat (layout.tsx) */
   --font-script: var(--font-caveat);
+}
+
+.font-art {
+  font-family: var(--font-art), var(--font-display), sans-serif;
+}
+
+/* Static optical echo: layered type with a subtle registration offset. */
+.hero-art {
+  display: block;
+  transform: rotate(-0.7deg) skewX(-0.4deg);
+  transform-origin: 50% 55%;
+  text-shadow:
+    0.012em 0.006em 0 rgba(10, 10, 10, 0.18),
+    0.026em 0.012em 0 rgba(10, 10, 10, 0.08),
+    -0.006em -0.004em 0 rgba(255, 255, 255, 0.55);
+}
+
+/* The lighter typeface is reserved for directory business names. */
+.business-card-title {
+  font-family: var(--font-overpass), sans-serif;
+}
+
+/* Hero headline: bold Geist for a cleaner, more consistent identity. */
+.hero-recycling-title {
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: clamp(2.55rem, 7.8vw, 4.5rem);
+  font-weight: 600;
+  letter-spacing: -0.040em;
+  line-height: 0.98;
 }
 
 :root {
@@ -53,12 +83,12 @@
 
   /* Borders and radii — related family, not one radius everywhere */
   --border-width: 1px;
-  --radius-control: 0.5rem; /* CTAs, selects, text fields */
+  --radius-control: 0.5rem; /* selects, text fields */
   --radius-panel: 0.75rem; /* business cards, form panels */
   --radius-media: 1rem; /* materials exhibition cards */
   --radius-chip: 0.75rem; /* status labels / small indicators */
   --radius-search: 1.5rem; /* hero search — softest oval in the set */
-  --radius-circle: 9999px; /* verified mark, icon buttons only */
+  --radius-circle: 9999px; /* CTAs, verified mark, icon buttons only */
 
   --underline-thick: 3px;
   --underline-thin: 2px;
@@ -78,6 +108,12 @@
 html {
   scroll-behavior: smooth;
   color-scheme: light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
@@ -103,13 +139,20 @@ h6 {
   line-height: var(--leading-heading);
 }
 
+
 .section-heading {
-  font-family: var(--font-display), sans-serif;
-  font-size: var(--text-section-title);
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 1.5rem;
   font-weight: 600;
   letter-spacing: -0.035em;
   line-height: var(--leading-heading);
   color: var(--color-ink);
+}
+
+@media (min-width: 640px) {
+  .section-heading {
+    font-size: 1.875rem;
+  }
 }
 
 .page-heading {
@@ -192,7 +235,7 @@ button:disabled {
   min-height: 2.75rem;
   padding: 0.5rem 1.25rem;
   border: var(--border-width) solid var(--color-ink);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-circle);
   background-color: var(--color-ink);
   color: var(--color-inverse);
   font-size: var(--text-small);
@@ -230,7 +273,7 @@ button:disabled {
   min-height: 2.75rem;
   padding: 0.5rem 1.25rem;
   border: var(--border-width) solid var(--color-border-strong);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-circle);
   background-color: var(--color-surface);
   color: var(--color-heading);
   font-size: var(--text-small);
@@ -279,23 +322,33 @@ button:disabled {
   box-shadow: 0 0 0 1px var(--color-accent);
 }
 
-/* Brand mark: Overpass 600 + raised square beside the final a. */
+/* Hide the OS/WebKit search cancel so only the custom white control remains. */
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+/* Brand mark: bold Geist with a small circular green accent. */
 .wordmark {
-  position: relative;
   display: inline-flex;
-  align-items: flex-start;
-  font-family: var(--font-display), sans-serif;
+  align-items: baseline;
+  font-family: var(--font-sans), sans-serif;
   font-weight: 600;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
+  line-height: 1;
 }
 
 .wordmark-period {
   display: inline-block;
-  width: 0.26em;
-  height: 0.26em;
-  margin-left: 0.05em;
-  margin-top: 0.16em;
-  border-radius: 0.07em;
+  width: 0.19em;
+  height: 0.19em;
+  margin-left: 0.07em;
+  margin-bottom: 0;
+  border-radius: 50%;
   background-color: var(--color-accent);
   flex-shrink: 0;
 }
@@ -315,10 +368,7 @@ button:disabled {
 }
 
 .wordmark-ghost .wordmark-period {
-  width: 0.28em;
-  height: 0.28em;
-  margin-top: 0.12em;
-  opacity: 0.7;
+  opacity: 0.28;
 }
 
 .footer-surface {
@@ -428,4 +478,21 @@ button:disabled {
     opacity: 1;
     transform: none;
   }
+}
+
+.search-clear,
+.search-clear:visited {
+  color: #ffffff !important;
+  opacity: 1;
+  text-decoration: none;
+}
+
+.search-clear:hover {
+  color: #ffffff !important;
+  opacity: 0.75;
+}
+
+.search-clear:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: -3px;
 }

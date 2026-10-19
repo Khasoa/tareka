@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import Header from "@/components/Header";
 import VerificationBadge from "@/components/VerificationBadge";
@@ -13,11 +14,25 @@ type BusinessPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+function isSafeHttpUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export default async function BusinessPage({
   params,
 }: BusinessPageProps) {
   const { slug } = await params;
-  const business = await getBusiness(slug);
+  let business;
+  try {
+    business = await getBusiness(slug);
+  } catch {
+    notFound();
+  }
   const primaryLocation = business.locations[0];
   const location = primaryLocation
     ? formatLocation(primaryLocation.town, primaryLocation.county)
@@ -40,7 +55,7 @@ export default async function BusinessPage({
         </Link>
 
         <article className="mt-8">
-          {business.image_url ? (
+          {business.image_url && isSafeHttpUrl(business.image_url) ? (
             <figure className="mb-8 max-w-xl">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
