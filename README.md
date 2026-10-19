@@ -166,7 +166,7 @@ The intended deployment arrangement is:
 Before launch:
 
 1. Configure the production environment variables on the relevant platforms.
-2. Set `NEXT_PUBLIC_SITE_URL` to the chosen canonical frontend origin and `NEXT_PUBLIC_API_URL` to the production API origin.
+2. Set `NEXT_PUBLIC_SITE_URL` to `https://tareka.directory` origin and `NEXT_PUBLIC_API_URL` to the production API origin.
 3. Configure API CORS to allow only the required frontend origins.
 4. Apply Alembic migrations to the production database.
 5. Create the initial administrator using the existing API bootstrap script.

@@ -284,10 +284,10 @@ export default function TermsPage() {
             <p className="mt-3">
               Questions about these Terms of Use can be sent to{" "}
               <a
-                href="mailto:hello@tarekaco"
+                href="mailto:hello@tareka.directory"
                 className="font-medium underline decoration-[var(--color-accent)] decoration-2 underline-offset-2"
               >
-                hello@tarekaco
+                hello@tareka.directory
               </a>
               .
             </p>

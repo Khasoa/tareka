@@ -33,8 +33,7 @@ export default function Hero({ total, countiesCount }: HeroProps) {
             aria-hidden="true"
             className="relative -mt-4 block w-full select-none overflow-visible leading-none sm:-mt-5"
           >
-            <span className="font-art mx-auto block w-fit text-[clamp(5.5rem,28vw,13rem)] font-normal leading-[0.78] tracking-[-0.02em] text-[var(--color-ink)]/[0.16]">
-              art
+            <span className="hero-art font-art mx-auto block w-fit text-[clamp(5.5rem,28vw,13rem)] font-normal leading-[0.78] tracking-[-0.02em] text-[var(--color-ink)]/[0.16]">              art
             </span>
             <span
               className="hero-science pointer-events-none absolute left-1/2 top-[62%] whitespace-nowrap font-script text-[clamp(1.1rem,5.4vw,2.65rem)] font-normal leading-none tracking-[-0.03em] text-[var(--color-ink)]"

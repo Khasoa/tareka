@@ -65,7 +65,7 @@ export default function Footer() {
               <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 sm:justify-end">
                 <li>
                   <a
-                    href="mailto:hello@tareka.co"
+                    href="mailto:hello@tareka.directory"
                     className="text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)]"
                   >
                     Contact <span aria-hidden="true">↗</span>

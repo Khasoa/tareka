@@ -281,10 +281,10 @@ export default function PrivacyPage() {
             <p className="mt-3">
               If you have a privacy question or request, contact us at{" "}
               <a
-                href="mailto:hello@tarekaco"
+                href="mailto:hello@tareka.directory"
                 className="font-medium underline decoration-[var(--color-accent)] decoration-2 underline-offset-2"
               >
-                hello@tarekaco
+                hello@tareka.directory
               </a>
               .
             </p>

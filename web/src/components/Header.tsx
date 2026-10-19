@@ -128,7 +128,7 @@ export default function Header() {
                 </li>
                 <li>
                   <a
-                    href="mailto:hello@tareka.co"
+                    href="mailto:hello@tareka.directory"
                     className="transition-colors hover:text-[var(--color-muted)]"
                   >
                     Contact <span aria-hidden="true">↗</span>
