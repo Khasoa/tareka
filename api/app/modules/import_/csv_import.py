@@ -31,7 +31,6 @@ def import_businesses(db: Session, csv_path: Path) -> tuple[int, list[str]]:
             "business_type",
             "accepts_public_dropoff",
             "county",
-            "town",
             "materials",
         }
 
