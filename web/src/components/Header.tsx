@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import CardLink from "@/components/CardLink";
+import ContactLink from "@/components/ContactLink";
 import DirectoryAnchor from "@/components/DirectoryAnchor";
 import Wordmark from "@/components/Wordmark";
 
@@ -10,16 +12,17 @@ export default function Header() {
   const closeMenu = () => setOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-paper)]">
-      <div className="mx-auto grid max-w-6xl grid-cols-3 items-center px-6 py-5">
-        <Link
-          href="/"
-          onClick={closeMenu}
-          aria-label="tareka home"
-          className="justify-self-start text-[1.25rem] font-semibold tracking-tight text-[var(--color-ink)] sm:text-[1.35rem]"
+    <header className="site-header sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-paper)]">
+      <div className="page-shell grid grid-cols-3 items-center py-2.5 sm:py-3">
+        <CardLink
+          href="/intro"
+          direction="down"
+          onNavigate={closeMenu}
+          aria-label="tareka intro"
+          className="justify-self-start text-[1.2rem] tracking-tight text-[var(--color-ink)] sm:text-[1.3rem]"
         >
           <Wordmark />
-        </Link>
+        </CardLink>
 
         <button
           type="button"
@@ -48,7 +51,7 @@ export default function Header() {
       {open && (
         <div className="border-t border-[var(--color-border)] px-6 py-10">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="mx-auto max-w-2xl text-balance text-2xl font-semibold leading-snug sm:text-3xl">
+            <p className="mx-auto max-w-2xl text-balance text-xl font-medium leading-snug tracking-tight sm:text-2xl">
               Waste is just a material waiting for its next life.
             </p>
           </div>
@@ -68,17 +71,23 @@ export default function Header() {
                 <Link
                   href="/how-it-works"
                   onClick={closeMenu}
-                  className="link-accent text-sm"
+                  className="link-row text-sm"
                 >
-                  How it works →
+                  <span className="link-accent">How it works</span>
+                  <span className="link-arrow" aria-hidden="true">
+                    →
+                  </span>
                 </Link>
 
                 <Link
                   href="/suggest"
                   onClick={closeMenu}
-                  className="link-accent text-sm"
+                  className="link-row text-sm"
                 >
-                  Suggest a business →
+                  <span className="link-accent">Suggest a business</span>
+                  <span className="link-arrow" aria-hidden="true">
+                    →
+                  </span>
                 </Link>
               </div>
             </div>
@@ -91,20 +100,26 @@ export default function Header() {
               <ul className="mt-3 space-y-3 text-sm">
                 <li>
                   <Link
-                    href="/#directory"
+                    href="/"
                     onClick={closeMenu}
-                    className="link-accent"
+                    className="link-row"
                   >
-                    Directory →
+                    <span className="link-accent">Directory</span>
+                    <span className="link-arrow" aria-hidden="true">
+                      →
+                    </span>
                   </Link>
                 </li>
                 <li>
                   <Link
                     href="/insights"
                     onClick={closeMenu}
-                    className="link-accent"
+                    className="link-row"
                   >
-                    Insights →
+                    <span className="link-accent">Insights</span>
+                    <span className="link-arrow" aria-hidden="true">
+                      →
+                    </span>
                   </Link>
                 </li>
               </ul>
@@ -127,12 +142,7 @@ export default function Header() {
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="mailto:hello@tareka.directory"
-                    className="transition-colors hover:text-[var(--color-muted)]"
-                  >
-                    Contact <span aria-hidden="true">↗</span>
-                  </a>
+                  <ContactLink showExternalIcon />
                 </li>
               </ul>
             </div>

@@ -9,13 +9,11 @@ import {
 
 type BusinessCardProps = {
   business: Business;
+  /** No longer shown: list position stops meaning anything once filters reorder results. */
   index?: number;
 };
 
-export default function BusinessCard({
-  business,
-  index,
-}: BusinessCardProps) {
+export default function BusinessCard({ business }: BusinessCardProps) {
   const primaryLocation = business.locations[0];
   const location = primaryLocation
     ? formatLocation(primaryLocation.town, primaryLocation.county)
@@ -23,69 +21,75 @@ export default function BusinessCard({
   const materials = business.materials ?? [];
   const visibleMaterials = materials.slice(0, 3);
   const extraMaterials = materials.length - visibleMaterials.length;
+  const acceptsDropoff = ["yes", "true"].includes(
+    String(business.accepts_public_dropoff).toLowerCase(),
+  );
 
   return (
-    <article className="group flex min-w-0 flex-col border-b border-[var(--color-border)] py-5 transition-colors duration-200 hover:border-[var(--color-border-strong)] sm:rounded-[var(--radius-panel)] sm:border sm:border-[var(--color-border)] sm:p-5 lg:p-6">
-      <div className="flex items-center justify-between gap-3">
-        <span className="font-display text-xs tabular-nums text-[var(--color-muted)]">
-          {typeof index === "number"
-            ? String(index + 1).padStart(2, "0")
-            : "—"}
-        </span>
+    <article className="group relative flex min-w-0 flex-col border-b border-[var(--color-border)] py-6 transition-colors duration-200 hover:border-[var(--color-border-strong)] sm:rounded-[var(--radius-control)] sm:border sm:p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h3 className="text-lg font-medium leading-tight tracking-[-0.03em] text-[var(--color-ink)] sm:text-xl">
+            <Link
+              href={`/directory/${business.slug}`}
+              className="outline-none transition-opacity hover:opacity-80 focus-visible:underline focus-visible:decoration-[var(--color-ink)] focus-visible:decoration-2 focus-visible:underline-offset-4"
+            >
+              {business.name}
+            </Link>
+          </h3>
+
+          <p className="mt-2 text-sm capitalize text-[var(--color-muted)]">
+            {formatBusinessType(business.business_type)}
+            {location ? (
+              <>
+                <span aria-hidden="true"> · </span>
+                {location}
+              </>
+            ) : null}
+          </p>
+        </div>
 
         <VerificationBadge status={business.verification_status} size="sm" />
       </div>
 
-      <div className="mt-5 flex-1">
-        <h3 className="business-card-title text-xl font-semibold leading-tight tracking-[-0.04em] text-[var(--color-ink)] sm:text-2xl">
-          <Link
-            href={`/directory/${business.slug}`}
-            className="outline-none transition-opacity hover:opacity-80 focus-visible:underline focus-visible:decoration-[var(--color-ink)] focus-visible:decoration-2 focus-visible:underline-offset-4"
-          >
-            {business.name}
-          </Link>
-        </h3>
-
-        <p className="mt-2 text-xs capitalize text-[var(--color-muted)]">
-          {formatBusinessType(business.business_type)}
-          {location ? (
-            <>
-              <span aria-hidden="true"> · </span>
-              {location}
-            </>
-          ) : null}
-        </p>
-      </div>
-
-      <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-[var(--color-border)] pt-4">
-        <span className="status-chip sm:text-xs">
-          {dropoffLabel(business.accepts_public_dropoff)}
-        </span>
-        {visibleMaterials.map((material) => (
-          <span key={material.id} className="status-chip sm:text-xs">
-            {material.name}
-          </span>
-        ))}
-        {extraMaterials > 0 ? (
-          <span className="status-chip sm:text-xs">+{extraMaterials}</span>
-        ) : null}
-      </div>
-
-      <Link
-        href={`/directory/${business.slug}`}
-        aria-label={`View details for ${business.name}`}
-        className="mt-5 inline-flex w-fit items-center gap-2 text-sm font-medium text-[var(--color-ink)] outline-none focus-visible:opacity-80"
-      >
-        <span className="underline decoration-[var(--color-accent)] decoration-2 underline-offset-4">
-          View details
-        </span>
+      <p className="mt-6 flex items-center gap-2 text-sm text-[var(--color-ink)]">
         <span
           aria-hidden="true"
-          className="transition-transform duration-200 group-hover:translate-x-1"
+          className={[
+            "h-2 w-2 shrink-0 rounded-full ring-1",
+            acceptsDropoff
+              ? "bg-[var(--color-accent)] ring-[var(--color-ink)]"
+              : "ring-[var(--color-muted)]",
+          ].join(" ")}
+        />
+        {dropoffLabel(business.accepts_public_dropoff)}
+      </p>
+
+      {materials.length > 0 && (
+        <div className="mt-4 flex flex-wrap items-center gap-1.5">
+          {visibleMaterials.map((material) => (
+            <span key={material.id} className="status-chip">
+              {material.name}
+            </span>
+          ))}
+          {extraMaterials > 0 ? (
+            <span className="status-chip">+{extraMaterials}</span>
+          ) : null}
+        </div>
+      )}
+
+      <div className="mt-auto pt-6">
+        <Link
+          href={`/directory/${business.slug}`}
+          aria-label={`View details for ${business.name}`}
+          className="link-row text-sm font-medium outline-none after:absolute after:inset-0 focus-visible:opacity-80"
         >
-          →
-        </span>
-      </Link>
+          <span className="link-accent">View details</span>
+          <span className="link-arrow" aria-hidden="true">
+            →
+          </span>
+        </Link>
+      </div>
     </article>
   );
 }

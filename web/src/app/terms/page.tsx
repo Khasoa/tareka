@@ -13,7 +13,7 @@ export default function TermsPage() {
             Legal
           </p>
 
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h1 className="page-heading mt-3">
             Terms of Use
           </h1>
 
@@ -295,11 +295,11 @@ export default function TermsPage() {
         </div>
 
         <div className="mt-12 border-t border-[var(--color-border-strong)] pt-6">
-          <Link
-            href="/"
-            className="link-accent text-sm font-medium"
-          >
-            ← Back to tareka
+          <Link href="/" className="link-row text-sm font-medium">
+            <span className="link-arrow" aria-hidden="true">
+              ←
+            </span>
+            <span className="link-accent">Back to tareka</span>
           </Link>
         </div>
       </main>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import BackToDirectory from "@/components/BackToDirectory";
 import Header from "@/components/Header";
 import VerificationBadge from "@/components/VerificationBadge";
 import { getBusiness } from "@/lib/api";
@@ -23,9 +24,7 @@ function isSafeHttpUrl(value: string): boolean {
   }
 }
 
-export default async function BusinessPage({
-  params,
-}: BusinessPageProps) {
+export default async function BusinessPage({ params }: BusinessPageProps) {
   const { slug } = await params;
   let business;
   try {
@@ -33,30 +32,36 @@ export default async function BusinessPage({
   } catch {
     notFound();
   }
+
   const primaryLocation = business.locations[0];
   const location = primaryLocation
     ? formatLocation(primaryLocation.town, primaryLocation.county)
     : "";
   const materials = business.materials ?? [];
-  const hasContact = Boolean(
-    business.phone || business.website_url || business.email,
+  const acceptsDropoff = ["yes", "true"].includes(
+    String(business.accepts_public_dropoff).toLowerCase(),
   );
+  const websiteHref =
+    business.website_url && isSafeHttpUrl(business.website_url)
+      ? business.website_url
+      : "";
+  const directionsHref = location
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        `${business.name} ${location}`,
+      )}`
+    : "";
+  const hasContact = Boolean(business.phone || websiteHref || business.email);
 
   return (
     <>
       <Header />
 
-      <main className="mx-auto max-w-5xl px-6 py-12 sm:py-16">
-        <Link
-          href="/#directory"
-          className="link-accent-quiet text-sm text-[var(--color-muted)]"
-        >
-          ← Back to directory
-        </Link>
+      <main className="page-shell py-12 sm:py-16">
+        <BackToDirectory />
 
-        <article className="mt-8">
+        <article className="mt-10">
           {business.image_url && isSafeHttpUrl(business.image_url) ? (
-            <figure className="mb-8 max-w-xl">
+            <figure className="mb-10 max-w-xl">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={business.image_url}
@@ -66,8 +71,8 @@ export default async function BusinessPage({
             </figure>
           ) : null}
 
-          <header className="max-w-3xl border-b border-[var(--color-border)] pb-8">
-            <div className="flex flex-wrap items-center gap-3">
+          <header className="border-b border-[var(--color-border)] pb-10">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <h1 className="page-heading">{business.name}</h1>
               <VerificationBadge
                 status={business.verification_status}
@@ -86,8 +91,8 @@ export default async function BusinessPage({
             </p>
           </header>
 
-          <div className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)] lg:items-start">
-            <div>
+          <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)] lg:items-start">
+            <div className="flex flex-col gap-12">
               {business.description ? (
                 <p className="max-w-2xl text-base leading-relaxed text-[var(--color-body)] sm:text-lg">
                   {business.description}
@@ -95,20 +100,21 @@ export default async function BusinessPage({
               ) : null}
 
               {materials.length > 0 ? (
-                <section className="mt-10">
-                  <h2 className="font-display text-lg font-semibold tracking-tight">
-                    Materials
-                  </h2>
-                  <ul className="mt-3 flex flex-wrap gap-2">
+                <section>
+                  <h2 className="kicker">Materials</h2>
+                  <ul className="mt-4 flex flex-wrap gap-2">
                     {materials.map((material) => (
-                      <li key={material.id} className="status-chip sm:text-xs">
+                      <li
+                        key={material.id}
+                        className="status-chip status-chip--lg"
+                      >
                         {material.name}
                       </li>
                     ))}
                   </ul>
                 </section>
               ) : (
-                <p className="mt-10 max-w-md text-sm text-[var(--color-muted)]">
+                <p className="max-w-md text-sm text-[var(--color-muted)]">
                   {business.phone
                     ? "Accepted materials are not listed — confirm with the business before travelling."
                     : "Accepted materials are not listed. Confirm with the business before travelling."}
@@ -116,33 +122,47 @@ export default async function BusinessPage({
               )}
             </div>
 
-            <aside className="flex flex-col gap-8 border-t border-[var(--color-border)] pt-8 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+            <aside className="flex flex-col gap-10 border-t border-[var(--color-border)] pt-10 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
               <section>
-                <h2 className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted)]">
-                  Drop-off
-                </h2>
-                <p className="mt-2 text-sm text-[var(--color-ink)]">
+                <h2 className="kicker">Drop-off</h2>
+                <p className="mt-3 flex items-center gap-2.5 text-base text-[var(--color-ink)]">
+                  <span
+                    aria-hidden="true"
+                    className={[
+                      "h-2 w-2 shrink-0 rounded-full ring-1",
+                      acceptsDropoff
+                        ? "bg-[var(--color-accent)] ring-[var(--color-ink)]"
+                        : "ring-[var(--color-muted)]",
+                    ].join(" ")}
+                  />
                   {dropoffLabel(business.accepts_public_dropoff)}
                 </p>
               </section>
 
               {location ? (
                 <section>
-                  <h2 className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted)]">
-                    Location
-                  </h2>
-                  <p className="mt-2 text-sm leading-relaxed text-[var(--color-ink)]">
+                  <h2 className="kicker">Location</h2>
+                  <p className="mt-3 text-base text-[var(--color-ink)]">
                     {location}
                   </p>
+                  <a
+                    href={directionsHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="link-row mt-3 text-sm font-medium"
+                  >
+                    <span className="link-accent">Get directions</span>
+                    <span className="link-arrow" aria-hidden="true">
+                      ↗
+                    </span>
+                  </a>
                 </section>
               ) : null}
 
               {hasContact ? (
                 <section>
-                  <h2 className="text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--color-muted)]">
-                    Contact
-                  </h2>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <h2 className="kicker">Contact</h2>
+                  <div className="mt-4 flex flex-wrap gap-2">
                     {business.phone ? (
                       <a href={`tel:${business.phone}`} className="btn-secondary">
                         Call
@@ -151,14 +171,16 @@ export default async function BusinessPage({
                     {business.phone ? (
                       <a
                         href={`https://wa.me/${business.phone.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noreferrer"
                         className="btn-secondary"
                       >
                         WhatsApp
                       </a>
                     ) : null}
-                    {business.website_url ? (
+                    {websiteHref ? (
                       <a
-                        href={business.website_url}
+                        href={websiteHref}
                         target="_blank"
                         rel="noreferrer"
                         className="btn-secondary"
@@ -181,9 +203,14 @@ export default async function BusinessPage({
               <p>
                 <Link
                   href={`/directory/${business.slug}/claim`}
-                  className="link-accent text-sm font-medium"
+                  className="link-row text-sm font-medium"
                 >
-                  Is this your business? Claim this listing →
+                  <span className="link-accent">
+                    Is this your business? Claim this listing
+                  </span>
+                  <span className="link-arrow" aria-hidden="true">
+                    →
+                  </span>
                 </Link>
               </p>
             </aside>

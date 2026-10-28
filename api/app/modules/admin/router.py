@@ -1,9 +1,9 @@
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
 from app.core.config import settings
@@ -21,6 +21,16 @@ from app.modules.admin.security import (
     verify_password,
 )
 from app.modules.admin.service import require_admin
+from app.modules.admin.verification_service import (
+    business_is_currently_verified,
+    count_businesses_needing_verification,
+    get_admin_business,
+    list_businesses_needing_verification,
+    paginated_response,
+    serialize_business_detail,
+    serialize_business_summary,
+)
+from app.modules.claims.models import BusinessClaim
 from app.modules.directory.models import (
     Business,
     BusinessMaterial,
@@ -156,43 +166,82 @@ def get_current_admin(
     return {"email": admin.email}
 
 
-@router.get("/businesses/needs-verification")
-def list_businesses_needing_verification(
+@router.get("/overview")
+def admin_overview(
     db: DbSession,
     admin: AdminUser = Depends(require_admin),
-) -> list[dict[str, object]]:
-    cutoff = datetime.now(UTC) - timedelta(days=365)
-
-    businesses = db.scalars(
-        select(Business)
-        .where(
-            Business.is_active.is_(True),
-            (
-                (Business.verification_status != "verified")
-                | (Business.last_verified_at.is_(None))
-                | (Business.last_verified_at < cutoff)
-            ),
+) -> dict[str, int]:
+    pending_verification = count_businesses_needing_verification(db)
+    new_suggestions = (
+        db.scalar(
+            select(func.count())
+            .select_from(BusinessSuggestion)
+            .where(BusinessSuggestion.status == "new")
         )
-        .order_by(
-            Business.last_verified_at.asc().nulls_first(),
-            Business.name.asc(),
+        or 0
+    )
+    pending_claims = (
+        db.scalar(
+            select(func.count())
+            .select_from(BusinessClaim)
+            .where(BusinessClaim.status == "pending")
         )
-    ).all()
+        or 0
+    )
+    return {
+        "pending_verification": pending_verification,
+        "new_suggestions": new_suggestions,
+        "pending_claims": pending_claims,
+    }
 
-    return [
-        {
-            "id": business.id,
-            "name": business.name,
-            "slug": business.slug,
-            "business_type": business.business_type,
-            "verification_status": business.verification_status,
-            "last_verified_at": business.last_verified_at,
-            "website_url": business.website_url,
-            "phone": business.phone,
-            "source_url": business.source_url,
-        }
-        for business in businesses
-    ]
+
+@router.get("/businesses/needs-verification")
+def list_businesses_needing_verification_endpoint(
+    db: DbSession,
+    admin: AdminUser = Depends(require_admin),
+    q: str | None = Query(default=None, min_length=1, max_length=100),
+    county: str | None = None,
+    business_type: str | None = Query(
+        default=None, pattern="^(recycler|upcycler|collector|mixed)$"
+    ),
+    verification_status: str | None = Query(
+        default=None, pattern="^(verified|unverified|needs_review)$"
+    ),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=50),
+) -> dict[str, object]:
+    try:
+        businesses, total = list_businesses_needing_verification(
+            db,
+            q=q,
+            county=county,
+            business_type=business_type,
+            verification_status=verification_status,
+            page=page,
+            page_size=page_size,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    items = [serialize_business_summary(business) for business in businesses]
+    return paginated_response(
+        items,
+        page=page,
+        page_size=page_size,
+        total=total,
+    )
+
+
+@router.get("/businesses/{business_id}")
+def get_business_for_review(
+    business_id: int,
+    db: DbSession,
+    admin: AdminUser = Depends(require_admin),
+) -> dict[str, object]:
+    business = get_admin_business(db, business_id)
+    if business is None:
+        raise HTTPException(status_code=404, detail="Business not found")
+    return serialize_business_detail(business)
 
 
 @router.post("/businesses/{business_id}/verify")
@@ -222,6 +271,12 @@ def verify_business(
 
     all_confirmed = all(answer == "confirmed" for answer in checklist.values())
     outcome = "verified" if all_confirmed else "needs_review"
+
+    if all_confirmed and business_is_currently_verified(business):
+        raise HTTPException(
+            status_code=409,
+            detail="Business is already verified.",
+        )
 
     now = datetime.now(UTC)
     before = {

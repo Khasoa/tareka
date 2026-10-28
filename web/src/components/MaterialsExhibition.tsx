@@ -1,208 +1,205 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, type CSSProperties } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type MaterialCard = {
   slug: string;
   label: string;
-  number: string;
   image: string;
   description: string;
 };
 
 const MATERIALS: MaterialCard[] = [
-  {
-    slug: "",
-    label: "All materials",
-    number: "00",
-    image: "/images/materials/all.png",
-    description: "Every material currently in the directory",
-  },
-  {
-    slug: "glass",
-    label: "Glass",
-    number: "01",
-    image: "/images/materials/glass.png",
-    description: "Bottles, jars and broken glass",
-  },
-  {
-    slug: "plastic",
-    label: "Plastic",
-    number: "02",
-    image: "/images/materials/plastic.png",
-    description: "Bottles, packaging and other plastics",
-  },
-  {
-    slug: "organic-waste",
-    label: "Organic",
-    number: "03",
-    image: "/images/materials/organic.png",
-    description: "Food scraps, garden waste and organics",
-  },
-  {
-    slug: "textiles",
-    label: "Textiles",
-    number: "04",
-    image: "/images/materials/textiles.png",
-    description: "Clothing, fabric and other fibres",
-  },
-  {
-    slug: "paper",
-    label: "Paper",
-    number: "05",
-    image: "/images/materials/paper.png",
-    description: "Paper, card and cardboard packaging",
-  },
-  {
-    slug: "metal",
-    label: "Metal",
-    number: "06",
-    image: "/images/materials/metal.png",
-    description: "Cans, scrap and other metals",
-  },
-  {
-    slug: "e-waste",
-    label: "E-waste",
-    number: "07",
-    image: "/images/materials/e-waste.png",
-    description: "Phones, appliances and electronics",
-  },
+  { slug: "", label: "All materials", image: "/images/materials/all.png", description: "Every material currently in the directory" },
+  { slug: "glass", label: "Glass", image: "/images/materials/glass.png", description: "Bottles, jars and broken glass" },
+  { slug: "plastic", label: "Plastic", image: "/images/materials/plastic.png", description: "Bottles, packaging and other plastics" },
+  { slug: "organic-waste", label: "Organic", image: "/images/materials/organic.png", description: "Food scraps, garden waste and organics" },
+  { slug: "textiles", label: "Textiles", image: "/images/materials/textiles.png", description: "Clothing, fabric and other fibres" },
+  { slug: "paper", label: "Paper", image: "/images/materials/paper.png", description: "Paper, card and cardboard packaging" },
+  { slug: "metal", label: "Metal", image: "/images/materials/metal.png", description: "Cans, scrap and other metals" },
+  { slug: "e-waste", label: "E-waste", image: "/images/materials/e-waste.png", description: "Phones, appliances and electronics" },
 ];
 
+const COUNT = MATERIALS.length;
+const HALF = COUNT / 2;
+
+// Circular offset from the selected card: -4 … 3. Offset -4 is the hidden one.
+function offsetOf(index: number, selected: number) {
+  return ((index - selected + HALF + COUNT) % COUNT) - HALF;
+}
+
 type Props = {
-  selectedSlug: string;
-  onSelectMaterial: (slug: string) => void;
+  materials: { id: number; slug: string }[];
 };
 
-export default function MaterialsExhibition({
-  selectedSlug,
-  onSelectMaterial,
-}: Props) {
-  const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
-  const [focusedSlug, setFocusedSlug] = useState<string | null>(null);
+export default function MaterialsExhibition({ materials }: Props) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const touchX = useRef<number | null>(null);
 
-  const activeSlug = hoveredSlug ?? focusedSlug ?? selectedSlug;
+  const slugParam = (searchParams.get("material") ?? "").trim();
+  const idParam = searchParams.get("material_id");
+  const selectedSlug =
+    slugParam ||
+    materials.find((m) => String(m.id) === idParam)?.slug ||
+    "";
+  const selectedIndex = Math.max(
+    0,
+    MATERIALS.findIndex((m) => m.slug === selectedSlug),
+  );
+  const selected = MATERIALS[selectedIndex];
+
+  const offsets = MATERIALS.map((_, i) => offsetOf(i, selectedIndex));
+
+  // A card that wraps from one side to the other should teleport (while
+  // invisible) instead of flying across the screen.
+  const [track, setTrack] = useState({
+    sel: selectedIndex,
+    offsets,
+    jumped: offsets.map(() => false),
+  });
+  if (track.sel !== selectedIndex) {
+    setTrack({
+      sel: selectedIndex,
+      offsets,
+      jumped: offsets.map((o, i) => Math.abs(o - track.offsets[i]) > HALF),
+    });
+  }
+
+  function select(index: number) {
+    const wrapped = (index + COUNT) % COUNT;
+    const target = MATERIALS[wrapped];
+    if (!target || wrapped === selectedIndex) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (target.slug) params.set("material", target.slug);
+    else params.delete("material");
+    params.delete("material_id");
+
+    const next = params.toString();
+    router.replace(next ? `/?${next}` : "/", { scroll: false });
+  }
+
+  function scrollToResults(delay: number) {
+    window.setTimeout(() => {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      document.getElementById("directory")?.scrollIntoView({
+        behavior: reduce ? "auto" : "smooth",
+        block: "start",
+      });
+    }, delay);
+  }
+
+  function handleCardClick(index: number) {
+    const isCurrent = index === selectedIndex;
+    select(index);
+    scrollToResults(isCurrent ? 0 : 650);
+  }
 
   return (
-    <section
-      aria-labelledby="materials-heading"
-      className="overflow-hidden bg-[var(--color-paper)] py-8 sm:py-10"
-    >
-      <div className="mx-auto max-w-[var(--content-max-width)] px-5 sm:px-8 lg:px-12">
-        <div className="mb-5 sm:mb-6">
-          <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--color-muted)] sm:text-xs">
-            Find a new destination
-          </p>
+    <section aria-labelledby="materials-heading" className="materials">
+      <h2 id="materials-heading" className="sr-only">
+        What are we reworking? Choose a material.
+      </h2>
 
-          <h2 id="materials-heading" className="section-heading">
-            What are we reworking?
-          </h2>
-
-          <p className="mt-1.5 text-xs text-[var(--color-muted)] sm:text-sm">
-            Choose a material to explore where it can go.
-          </p>
-        </div>
+      {/* the arrows flank the row, level with the selected card */}
+      <div className="materials__stage">
+        <button
+          type="button"
+          className="materials__step materials__step--prev"
+          aria-label="Previous material"
+          onClick={() => select(selectedIndex - 1)}
+        >
+          ←
+        </button>
 
         <div
-          className="relative"
-          onPointerLeave={(event) => {
-            if (event.pointerType === "mouse") setHoveredSlug(null);
+          className="materials__viewport"
+          onKeyDown={(e) => {
+            if (e.key === "ArrowRight") select(selectedIndex + 1);
+            if (e.key === "ArrowLeft") select(selectedIndex - 1);
+          }}
+          onTouchStart={(e) => {
+            touchX.current = e.touches[0].clientX;
+          }}
+          onTouchEnd={(e) => {
+            if (touchX.current === null) return;
+            const delta = e.changedTouches[0].clientX - touchX.current;
+            touchX.current = null;
+            if (Math.abs(delta) < 50) return;
+            select(delta < 0 ? selectedIndex + 1 : selectedIndex - 1);
           }}
         >
-          <div className="flex snap-x snap-mandatory items-stretch gap-2 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-2.5">
-            {MATERIALS.map((material) => {
-              const isActive = activeSlug === material.slug;
-              const isSelected = selectedSlug === material.slug;
+          {MATERIALS.map((material, index) => {
+            const offset = offsets[index];
+            const isSelected = offset === 0;
+            const isHidden = Math.abs(offset) === HALF;
 
-              return (
-                <button
-                  key={material.slug || "all"}
-                  type="button"
-                  onPointerEnter={(event) => {
-                    if (event.pointerType === "mouse") {
-                      setHoveredSlug(material.slug);
-                    }
-                  }}
-                  onFocus={() => setFocusedSlug(material.slug)}
-                  onBlur={() => setFocusedSlug(null)}
-                  onClick={() => onSelectMaterial(material.slug)}
-                  aria-pressed={isSelected}
-                  aria-label={`Filter directory by ${material.label}`}
-                  className={[
-                    "group relative isolate flex h-[210px] shrink-0 snap-start flex-col overflow-hidden",
-                    "rounded-[var(--radius-media)] bg-[var(--color-paper)] text-left",
-                    "transition-[flex-basis,width,min-width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
-                    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]",
-                    "sm:h-[270px] lg:h-[285px]",
-                    isActive
-                      ? "w-[58vw] min-w-[11.5rem] shrink-0 sm:w-[24%] sm:min-w-[13rem] lg:w-[18%] lg:min-w-[11.5rem]"
-                      : "w-[30vw] min-w-[6.25rem] sm:min-w-[6.5rem] lg:w-auto lg:min-w-0 lg:flex-1",
-                    isSelected
-                      ? "ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-[var(--color-paper)]"
-                      : "ring-1 ring-[var(--color-border)]",
-                  ].join(" ")}
-                >
-                  <span className="relative min-h-0 flex-1 overflow-hidden bg-[var(--color-ink)]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={material.image}
-                      alt=""
-                      loading="lazy"
-                      className={`absolute inset-0 h-full w-full object-cover transition-transform duration-700 ${
-                        isActive ? "scale-100" : "scale-110"
-                      }`}
-                    />
-
-                    <span className="absolute left-3 top-3 text-[10px] font-medium tracking-[0.15em] text-[var(--color-inverse)] [text-shadow:0_1px_2px_rgba(0,0,0,0.55)] sm:left-4 sm:top-4">
-                      {material.number}
-                    </span>
-
-                    {isSelected && (
-                      <span className="absolute right-3 top-3 rounded-full border border-[var(--color-inverse)]/80 bg-[var(--color-ink)]/55 px-2 py-1 text-[9px] font-medium uppercase tracking-wider text-[var(--color-inverse)] sm:right-4 sm:top-4">
-                        Selected
-                      </span>
-                    )}
-                  </span>
-
-                  <span
-                    className={[
-                      "relative z-10 flex shrink-0 flex-col justify-center border-t border-[var(--color-border)] bg-[var(--color-paper)] text-[var(--color-ink)]",
-                      isActive
-                        ? "min-h-[4.75rem] px-3 py-2.5 sm:min-h-[5.25rem] sm:px-4 sm:py-3"
-                        : "min-h-[2.35rem] px-2 py-1.5 sm:min-h-[2.5rem] sm:px-3",
-                    ].join(" ")}
-                  >
-                    {isActive ? (
-                      <>
-                        <span className="mb-1.5 block h-[3px] w-7 bg-[var(--color-accent)] sm:w-9" />
-                        <span className="font-display text-base font-semibold leading-tight tracking-tight sm:text-xl">
-                          {material.label}
-                        </span>
-                        <span className="mt-0.5 line-clamp-1 text-[10px] text-[var(--color-muted)] sm:text-xs">
-                          {material.description}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="truncate text-[11px] font-medium sm:text-sm">
-                        {material.label}
-                      </span>
-                    )}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+            return (
+              <button
+                key={material.slug || "all"}
+                type="button"
+                onClick={() => handleCardClick(index)}
+                aria-pressed={isSelected}
+                aria-label={`Filter directory by ${material.label}`}
+                aria-hidden={isHidden || undefined}
+                tabIndex={isHidden ? -1 : 0}
+                data-a={Math.abs(offset)}
+                style={
+                  {
+                    "--dir": Math.sign(offset),
+                    "--a": Math.abs(offset),
+                  } as CSSProperties
+                }
+                className={[
+                  "material-card",
+                  isSelected ? "is-selected" : "",
+                  isHidden ? "is-hidden" : "",
+                  track.jumped[index] ? "is-jump" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                <span className="material-card__image">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={material.image}
+                    alt=""
+                    width={353}
+                    height={475}
+                    decoding="async"
+                  />
+                </span>
+                <span className="material-card__caption">
+                  <span className="material-card__name">{material.label}</span>
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        <div className="mt-2 flex items-center justify-between">
-          <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted)] sm:text-xs">
-            Browse by material
-          </p>
-          <p className="text-[10px] text-[var(--color-muted)] lg:hidden">
-            Swipe to explore →
-          </p>
-        </div>
+        <button
+          type="button"
+          className="materials__step materials__step--next"
+          aria-label="Next material"
+          onClick={() => select(selectedIndex + 1)}
+        >
+          →
+        </button>
       </div>
+
+      <p className="materials__meta" aria-live="polite">
+        {selected.description}
+      </p>
+
+      <button
+        type="button"
+        className="materials__cue"
+        onClick={() => scrollToResults(0)}
+      >
+        Browse the directory ↓
+      </button>
     </section>
   );
 }

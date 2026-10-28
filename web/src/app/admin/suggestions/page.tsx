@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-
 import {
   adminRequest,
   type MaterialOption,
   type Suggestion,
 } from "@/lib/adminApi";
+import { AdminShell } from "@/components/admin/AdminShell";
 
 function slugify(value: string) {
   return value
@@ -491,33 +490,14 @@ export default function AdminSuggestionsPage() {
   }, []);
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-5 py-8 sm:px-8 sm:py-10">
-      <Link
-        href="/admin"
-        className="text-sm font-semibold text-[var(--color-heading)] transition hover:text-[var(--color-ink)]"
-      >
-        ← Admin workspace
-      </Link>
-
-      <div className="mt-5 flex flex-wrap items-end justify-between gap-5 border-b border-[var(--color-border-strong)] pb-6">
-        <div>
-          <p className="kicker">
-            Incoming
-          </p>
-
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-            Business suggestions
-          </h1>
-
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-muted)]">
-            Review each source, research the business, and prepare the
-            canonical listing before publication.
-          </p>
-        </div>
-
+    <AdminShell
+      title="Business suggestions"
+      kicker="Incoming"
+      description="Review each source, research the business, and prepare the canonical listing before publication."
+    >
+      <div className="mt-2 flex justify-end">
         <div className="rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-4 py-3 text-center">
           <p className="text-2xl font-semibold">{suggestions.length}</p>
-
           <p className="text-xs uppercase tracking-wide text-[var(--color-muted)]">
             Pending
           </p>
@@ -555,6 +535,6 @@ export default function AdminSuggestionsPage() {
           />
         ))}
       </div>
-    </main>
+    </AdminShell>
   );
 }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 
 export const metadata = {
-  title: "How It Works | tareka",
+  title: "How it works | tareka",
   description:
     "Learn how tareka verifies recovery businesses, helps people find material recovery options, and handles business claims and content consent.",
 };
@@ -58,18 +58,15 @@ export default function HowItWorksPage() {
       <Header />
       <main className="min-h-screen bg-[var(--color-paper)] px-6 py-10 sm:py-16">
       <div className="mx-auto max-w-4xl">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-muted)] normal-case transition-colors hover:text-[var(--color-ink)]"
-        >
-          <span aria-hidden="true">←</span>
-          Back to tareka
+        <Link href="/" className="link-row text-sm font-medium">
+          <span className="link-arrow" aria-hidden="true">
+            ←
+          </span>
+          <span className="link-accent">Back to tareka</span>
         </Link>
 
         <div className="mt-10 max-w-2xl sm:mt-14">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-muted)]">
-            <span className="normal-case">About tareka</span>
-          </p>
+          <p className="kicker">About tareka</p>
 
           <h1 className="page-heading mt-4">
             How it works
@@ -97,7 +94,7 @@ export default function HowItWorksPage() {
               </p>
 
               <div>
-                <h2 className="text-xl font-semibold tracking-tight text-[var(--color-ink)] sm:text-2xl">
+                <h2 className="text-xl font-medium tracking-tight text-[var(--color-ink)] sm:text-2xl">
                   {step.title}
                 </h2>
 
@@ -118,7 +115,7 @@ export default function HowItWorksPage() {
 
         <div className="mt-12 flex flex-col items-start gap-4 border-t border-[var(--color-border)] pt-8 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-[var(--color-ink)]">
+            <h2 className="text-lg font-medium text-[var(--color-ink)]">
               Know a business we should include?
             </h2>
             <p className="mt-2 text-sm text-[var(--color-muted)]">

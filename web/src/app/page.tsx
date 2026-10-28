@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Header from "@/components/Header";
-import Hero from "@/components/Hero";
+import MaterialsExhibition from "@/components/MaterialsExhibition";
+import DirectoryIntro from "@/components/DirectoryIntro";
 import DirectoryHome from "@/components/DirectoryHome";
 import {
   getBusinesses,
@@ -93,16 +94,24 @@ export default async function HomePage({
   return (
     <>
       <Header />
-      <Hero total={directoryTotal} countiesCount={countiesCount} />
-      <Suspense fallback={null}>
-        <DirectoryHome
-          key={listKey}
-          initialBusinesses={businessData.items}
-          initialTotal={businessData.total}
-          counties={counties}
-          materials={materials}
-        />
-      </Suspense>
+      <div className="directory-page">
+        <section className="directory-hero">
+          <DirectoryIntro total={directoryTotal} countiesCount={countiesCount} />
+          <Suspense fallback={null}>
+            <MaterialsExhibition materials={materials} />
+          </Suspense>
+        </section>
+
+        <Suspense fallback={null}>
+          <DirectoryHome
+            key={listKey}
+            initialBusinesses={businessData.items}
+            initialTotal={businessData.total}
+            counties={counties}
+            materials={materials}
+          />
+        </Suspense>
+      </div>
     </>
   );
 }

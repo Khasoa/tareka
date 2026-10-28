@@ -1,10 +1,12 @@
 import Link from "next/link";
+import CardLink from "@/components/CardLink";
+import ContactLink from "@/components/ContactLink";
 import DirectoryAnchor from "@/components/DirectoryAnchor";
 import Wordmark from "@/components/Wordmark";
 
 export default function Footer() {
   return (
-    <footer className="footer-surface relative isolate overflow-hidden border-t border-[var(--color-border)] px-6 py-12 sm:py-14">
+    <footer className="footer-surface relative isolate overflow-x-hidden border-t border-[var(--color-border)] py-12 sm:py-14">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 top-10 flex items-end justify-center overflow-hidden"
@@ -18,15 +20,17 @@ export default function Footer() {
         <Wordmark className="wordmark-ghost select-none" />
       </div>
 
-      <div className="relative mx-auto max-w-6xl">
+      <div className="page-shell relative">
         <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-xs">
-            <span
-              className="text-xl tracking-tight text-[var(--color-ink)] sm:text-[1.5rem]"
-              aria-label="tareka"
+            <CardLink
+              href="/intro"
+              direction="down"
+              aria-label="tareka intro"
+              className="inline-block text-xl tracking-tight text-[var(--color-ink)] sm:text-[1.5rem]"
             >
               <Wordmark />
-            </span>
+            </CardLink>
 
             <p className="mt-2 text-sm text-[var(--color-muted)]">
               Kenya&apos;s recovery directory.
@@ -44,7 +48,7 @@ export default function Footer() {
             <nav aria-label="Directory" className="text-sm sm:text-right">
               <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 sm:justify-end">
                 <li>
-                  <Link href="/#directory" className="link-accent text-[var(--color-ink)]">
+                  <Link href="/" className="link-accent text-[var(--color-ink)]">
                     Directory
                   </Link>
                 </li>
@@ -64,12 +68,7 @@ export default function Footer() {
             <nav aria-label="Connect" className="text-sm sm:text-right">
               <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 sm:justify-end">
                 <li>
-                  <a
-                    href="mailto:hello@tareka.directory"
-                    className="text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)]"
-                  >
-                    Contact <span aria-hidden="true">↗</span>
-                  </a>
+                  <ContactLink showExternalIcon />
                 </li>
                 <li>
                   <a
@@ -88,10 +87,16 @@ export default function Footer() {
               aria-label="Legal"
               className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-[var(--color-muted)] sm:justify-end"
             >
-              <Link href="/privacy" className="link-accent-quiet">
+              <Link
+                href="/privacy"
+                className="transition-colors hover:text-[var(--color-ink)]"
+              >
                 Privacy
               </Link>
-              <Link href="/terms" className="link-accent-quiet">
+              <Link
+                href="/terms"
+                className="transition-colors hover:text-[var(--color-ink)]"
+              >
                 Terms
               </Link>
             </nav>
