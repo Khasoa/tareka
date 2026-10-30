@@ -12,11 +12,15 @@ import {
   type VerifyBusinessPayload,
 } from "@/lib/adminApi";
 import {
-  dropoffLabel,
-  formatBusinessType,
+  adminServiceAvailabilityLabel,
+  businessTypeLabel,
+  CANONICAL_BUSINESS_TYPES,
+  formatBusinessTypesLine,
   formatLocation,
   verificationDisplay,
 } from "@/lib/publicLabels";
+
+type ServiceValue = "yes" | "no" | "unknown";
 
 type ChecklistField = keyof Omit<VerifyBusinessPayload, "notes">;
 
@@ -92,6 +96,11 @@ export default function AdminVerificationDetailPage() {
     materials_confirmed: "unknown",
     dropoff_policy_confirmed: "unknown",
   });
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [dropoffValue, setDropoffValue] = useState<ServiceValue>("unknown");
+  const [pickupValue, setPickupValue] = useState<ServiceValue>("unknown");
+  const [servicesBusy, setServicesBusy] = useState(false);
+  const [typesBusy, setTypesBusy] = useState(false);
 
   const backHref = useMemo(
     () => `/admin/verification${queueQueryString(searchParams)}`,
@@ -110,6 +119,11 @@ export default function AdminVerificationDetailPage() {
         );
         if (!cancelled) {
           setBusiness(data);
+          setSelectedTypes(data.business_types ?? []);
+          setDropoffValue(
+            (data.accepts_public_dropoff as ServiceValue) || "unknown",
+          );
+          setPickupValue((data.offers_pickup as ServiceValue) || "unknown");
         }
       } catch (err) {
         if (!cancelled) {
@@ -134,6 +148,58 @@ export default function AdminVerificationDetailPage() {
       cancelled = true;
     };
   }, [businessId, invalidId]);
+
+  async function saveServices() {
+    if (!business) return;
+    setServicesBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      await adminRequest(`/api/admin/businesses/${business.id}/services`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          accepts_public_dropoff: dropoffValue,
+          offers_pickup: pickupValue,
+        }),
+      });
+      const refreshed = await adminRequest<AdminBusinessDetail>(
+        `/api/admin/businesses/${business.id}`,
+      );
+      setBusiness(refreshed);
+      setMessage("Service availability updated.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to save services.");
+    } finally {
+      setServicesBusy(false);
+    }
+  }
+
+  async function saveTypes() {
+    if (!business) return;
+    if (selectedTypes.length === 0) {
+      setError("Select at least one business type.");
+      return;
+    }
+    setTypesBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      await adminRequest(`/api/admin/businesses/${business.id}/types`, {
+        method: "PATCH",
+        body: JSON.stringify({ business_types: selectedTypes }),
+      });
+      const refreshed = await adminRequest<AdminBusinessDetail>(
+        `/api/admin/businesses/${business.id}`,
+      );
+      setBusiness(refreshed);
+      setSelectedTypes(refreshed.business_types ?? []);
+      setMessage("Business types updated.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to save types.");
+    } finally {
+      setTypesBusy(false);
+    }
+  }
 
   async function submitDecision(intent: "verify" | "needs_review") {
     if (!business) return;
@@ -275,6 +341,11 @@ export default function AdminVerificationDetailPage() {
       </Link>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
+        {business.types_unresolved ? (
+          <span className="rounded-[var(--radius-control)] border border-amber-600/40 bg-amber-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-900">
+            Types unresolved
+          </span>
+        ) : null}
         <span
           className={`rounded-[var(--radius-control)] border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
             status.tone === "review"
@@ -295,8 +366,13 @@ export default function AdminVerificationDetailPage() {
         <h2 className="text-lg font-semibold">Listing data</h2>
         <dl className="mt-5 grid gap-5 text-sm sm:grid-cols-2">
           <div>
-            <dt className="font-semibold text-[var(--color-heading)]">Type</dt>
-            <dd className="mt-1">{formatBusinessType(business.business_type)}</dd>
+            <dt className="font-semibold text-[var(--color-heading)]">Types</dt>
+            <dd className="mt-1">
+              {formatBusinessTypesLine(business.business_types) ||
+                (business.legacy_business_type === "mixed"
+                  ? "Legacy mixed (assign types)"
+                  : "Not recorded")}
+            </dd>
           </div>
           <div>
             <dt className="font-semibold text-[var(--color-heading)]">Location</dt>
@@ -315,7 +391,13 @@ export default function AdminVerificationDetailPage() {
               Public drop-off
             </dt>
             <dd className="mt-1">
-              {dropoffLabel(business.accepts_public_dropoff)}
+              {adminServiceAvailabilityLabel(business.accepts_public_dropoff)}
+            </dd>
+          </div>
+          <div>
+            <dt className="font-semibold text-[var(--color-heading)]">Pick-up</dt>
+            <dd className="mt-1">
+              {adminServiceAvailabilityLabel(business.offers_pickup)}
             </dd>
           </div>
           <div className="sm:col-span-2">
@@ -387,6 +469,85 @@ export default function AdminVerificationDetailPage() {
           </ul>
         </section>
       )}
+
+      <section className="mt-6 rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] p-6">
+        <h2 className="text-lg font-semibold">Types and services</h2>
+        <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
+          Updating types or service availability does not verify the business or
+          refresh the last-checked date. Set each field independently from the
+          other.
+        </p>
+
+        <fieldset className="mt-5">
+          <legend className="text-sm font-semibold">Business types</legend>
+          <div className="mt-3 flex flex-wrap gap-4">
+            {CANONICAL_BUSINESS_TYPES.map((value) => (
+              <label key={value} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={selectedTypes.includes(value)}
+                  onChange={(event) => {
+                    setSelectedTypes((current) =>
+                      event.target.checked
+                        ? [...current, value]
+                        : current.filter((item) => item !== value),
+                    );
+                  }}
+                  className="h-4 w-4 accent-[var(--color-ink)]"
+                />
+                {businessTypeLabel(value)}
+              </label>
+            ))}
+          </div>
+          <button
+            type="button"
+            disabled={typesBusy}
+            onClick={() => void saveTypes()}
+            className="btn-secondary mt-4 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {typesBusy ? "Saving…" : "Save types"}
+          </button>
+        </fieldset>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <label className="text-sm font-semibold">
+            Public drop-off
+            <select
+              value={dropoffValue}
+              onChange={(event) =>
+                setDropoffValue(event.target.value as ServiceValue)
+              }
+              className="input-field mt-2 py-2.5"
+            >
+              <option value="unknown">Unknown</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <label className="text-sm font-semibold">
+            Pick-up
+            <select
+              value={pickupValue}
+              onChange={(event) =>
+                setPickupValue(event.target.value as ServiceValue)
+              }
+              className="input-field mt-2 py-2.5"
+            >
+              <option value="unknown">Unknown</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+        </div>
+        <button
+          type="button"
+          disabled={servicesBusy}
+          onClick={() => void saveServices()}
+          className="btn-secondary mt-4 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {servicesBusy ? "Saving…" : "Save services"}
+        </button>
+      </section>
 
       <section className="mt-6 rounded-[var(--radius-control)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] p-6">
         <h2 className="text-lg font-semibold">Verification checklist</h2>

@@ -9,6 +9,7 @@ import {
   getMaterials,
   type BusinessListResponse,
 } from "@/lib/api";
+import { businessTypeQueryForApi } from "@/lib/directorySearchParams";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +45,8 @@ export default async function HomePage({
     const query = first(sp.q).trim();
     const county = first(sp.county).trim();
     const dropoff = first(sp.accepts_public_dropoff).trim();
-    const businessType = first(sp.business_type).trim();
+    const pickup = first(sp.offers_pickup).trim();
+    const businessType = businessTypeQueryForApi(first(sp.business_type));
     const materialSlug = first(sp.material).trim();
     const materialId = first(sp.material_id).trim();
 
@@ -68,11 +70,12 @@ export default async function HomePage({
       query,
       county,
       dropoff,
+      pickup,
       businessType,
       selectedMaterial?.slug ?? "",
     ].join("|");
 
-    if (query || county || dropoff || businessType || selectedMaterial) {
+    if (query || county || dropoff || pickup || businessType || selectedMaterial) {
       const filtered = new URLSearchParams({
         page: "1",
         page_size: "12",
@@ -80,6 +83,7 @@ export default async function HomePage({
       if (query) filtered.set("q", query);
       if (county) filtered.set("county", county);
       if (dropoff) filtered.set("accepts_public_dropoff", dropoff);
+      if (pickup) filtered.set("offers_pickup", pickup);
       if (businessType) filtered.set("business_type", businessType);
       if (selectedMaterial) {
         filtered.set("material_id", String(selectedMaterial.id));

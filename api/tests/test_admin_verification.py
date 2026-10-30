@@ -4,7 +4,8 @@ from sqlalchemy import func, select
 
 from app.modules.admin.models import AdminUser, AuditLog
 from app.modules.admin.security import hash_password
-from app.modules.directory.models import Business, Location, VerificationRecord
+from app.modules.directory.models import Location, VerificationRecord
+from tests.conftest import make_business
 
 TEST_ADMIN_EMAIL = "verification-admin@example.org"
 TEST_ADMIN_PASSWORD = "a-long-test-password"
@@ -60,10 +61,10 @@ def create_business(
     last_verified_at=None,
     is_active=True,
 ):
-    business = Business(
+    business = make_business(
+        "recycler",
         name=name,
         slug=slug,
-        business_type="recycler",
         accepts_public_dropoff="yes",
         verification_status=verification_status,
         last_verified_at=last_verified_at,
@@ -262,8 +263,9 @@ def test_incomplete_checklist_keeps_business_unverified(client, db_session):
 
     db_session.refresh(business)
     assert business.verification_status == "needs_review"
-    assert business.last_verified_at is not None
-    assert business.last_verified_at.date() == old_timestamp.date()
+    assert normalize_timestamp(business.last_verified_at) == normalize_timestamp(
+        old_timestamp
+    )
 
     record = db_session.scalar(
         select(VerificationRecord).where(VerificationRecord.business_id == business.id)
@@ -534,3 +536,43 @@ def test_duplicate_verification_is_rejected(client, db_session):
         .where(VerificationRecord.business_id == business.id)
     )
     assert record_count == 0
+
+
+def test_update_business_services_audits_without_refreshing_verification(
+    client, db_session
+):
+    login_admin(client, db_session)
+
+    verified_at = datetime.now(UTC) - timedelta(days=10)
+    business = create_business(
+        db_session,
+        verification_status="verified",
+        last_verified_at=verified_at,
+    )
+
+    response = client.patch(
+        f"/api/admin/businesses/{business.id}/services",
+        json={
+            "accepts_public_dropoff": "no",
+            "offers_pickup": "yes",
+        },
+    )
+    assert response.status_code == 200
+
+    db_session.refresh(business)
+    assert business.accepts_public_dropoff == "no"
+    assert business.offers_pickup == "yes"
+    assert normalize_timestamp(business.last_verified_at) == normalize_timestamp(
+        verified_at
+    )
+
+    audit = db_session.scalar(
+        select(AuditLog).where(
+            AuditLog.entity == "business",
+            AuditLog.entity_id == business.id,
+            AuditLog.action == "update_business_services",
+        )
+    )
+    assert audit is not None
+    assert audit.before["offers_pickup"] == "unknown"
+    assert audit.after["offers_pickup"] == "yes"

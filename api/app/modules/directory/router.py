@@ -4,14 +4,23 @@ from fastapi import APIRouter, HTTPException, Query
 
 from app.core.deps import DbSession
 from app.modules.directory import service
+from app.modules.directory.constants import (
+    BUSINESS_TYPE_SET,
+    LEGACY_BUSINESS_TYPE_MIXED,
+    SERVICE_AVAILABILITY_OPTIONS,
+)
 from app.modules.directory.models import Business
 from app.modules.directory.schemas import (
     BusinessListItem,
     BusinessListResponse,
     BusinessResponse,
 )
+from app.modules.directory.type_utils import business_type_values
 
 router = APIRouter(prefix="/businesses", tags=["businesses"])
+
+_BUSINESS_TYPE_PATTERN = "^(" + "|".join(BUSINESS_TYPE_SET) + ")$"
+_SERVICE_PATTERN = "^(" + "|".join(SERVICE_AVAILABILITY_OPTIONS) + ")$"
 
 
 @router.get("", response_model=BusinessListResponse)
@@ -20,15 +29,15 @@ def get_businesses(
     q: str | None = Query(default=None, min_length=1, max_length=100),
     county: str | None = None,
     material_id: int | None = None,
-    business_type: str | None = Query(
-        default=None, pattern="^(recycler|upcycler|collector|mixed)$"
-    ),
-    accepts_public_dropoff: str | None = Query(
-        default=None, pattern="^(yes|no|unknown)$"
-    ),
+    business_type: str | None = Query(default=None, pattern=_BUSINESS_TYPE_PATTERN),
+    accepts_public_dropoff: str | None = Query(default=None, pattern=_SERVICE_PATTERN),
+    offers_pickup: str | None = Query(default=None, pattern=_SERVICE_PATTERN),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=50),
 ):
+    if business_type == LEGACY_BUSINESS_TYPE_MIXED:
+        raise HTTPException(status_code=422, detail="Unsupported business type.")
+
     businesses, total = service.list_businesses(
         db,
         q=q,
@@ -36,6 +45,7 @@ def get_businesses(
         material_id=material_id,
         business_type=business_type,
         accepts_public_dropoff=accepts_public_dropoff,
+        offers_pickup=offers_pickup,
         page=page,
         page_size=page_size,
     )
@@ -53,8 +63,9 @@ def _list_item(business: Business) -> BusinessListItem:
         id=business.id,
         name=business.name,
         slug=business.slug,
-        business_type=business.business_type,
+        business_types=business_type_values(business),
         accepts_public_dropoff=business.accepts_public_dropoff,
+        offers_pickup=business.offers_pickup,
         verification_status=business.verification_status,
         last_verified_at=business.last_verified_at,
         locations=business.locations,
@@ -68,15 +79,13 @@ def get_business(slug: str, db: DbSession):
     if business is None:
         raise HTTPException(status_code=404, detail="Business not found")
 
-    # business.materials is a list of BusinessMaterial join rows (business_id,
-    # material_id) — not the Material itself. Unwrap each one via .material
-    # to get the id/name/slug that BusinessResponse actually expects.
     return BusinessResponse(
         id=business.id,
         name=business.name,
         slug=business.slug,
-        business_type=business.business_type,
+        business_types=business_type_values(business),
         accepts_public_dropoff=business.accepts_public_dropoff,
+        offers_pickup=business.offers_pickup,
         verification_status=business.verification_status,
         last_verified_at=business.last_verified_at,
         description=business.description,

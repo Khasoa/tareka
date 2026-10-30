@@ -5,12 +5,19 @@ from sqlalchemy import case, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.modules.directory.constants import (
-    BUSINESS_TYPES,
+    BUSINESS_TYPE_SET,
     COUNTIES,
+    LEGACY_BUSINESS_TYPE_MIXED,
     VERIFICATION_STATUSES,
 )
-from app.modules.directory.models import Business, BusinessMaterial, Location
+from app.modules.directory.models import (
+    Business,
+    BusinessBusinessType,
+    BusinessMaterial,
+    Location,
+)
 from app.modules.directory.service import VERIFICATION_MAX_AGE_DAYS
+from app.modules.directory.type_utils import business_type_values
 
 
 def verification_cutoff() -> datetime:
@@ -41,6 +48,7 @@ def _business_list_options():
     return (
         selectinload(Business.locations),
         selectinload(Business.materials).selectinload(BusinessMaterial.material),
+        selectinload(Business.business_type_links),
     )
 
 
@@ -62,8 +70,11 @@ def list_businesses_needing_verification(
     if page_size < 1 or page_size > 50:
         raise ValueError("page_size must be between 1 and 50")
 
-    if business_type is not None and business_type not in BUSINESS_TYPES:
-        raise ValueError("Invalid business type.")
+    if business_type is not None:
+        if business_type == LEGACY_BUSINESS_TYPE_MIXED:
+            pass  # filter legacy column below
+        elif business_type not in BUSINESS_TYPE_SET:
+            raise ValueError("Invalid business type.")
 
     if (
         verification_status is not None
@@ -95,8 +106,19 @@ def list_businesses_needing_verification(
         )
 
     if business_type:
-        query = query.where(Business.business_type == business_type)
-        count_query = count_query.where(Business.business_type == business_type)
+        if business_type == LEGACY_BUSINESS_TYPE_MIXED:
+            legacy_filter = or_(
+                Business.business_type == LEGACY_BUSINESS_TYPE_MIXED,
+                ~Business.business_type_links.any(),
+            )
+            query = query.where(legacy_filter)
+            count_query = count_query.where(legacy_filter)
+        else:
+            type_filter = Business.business_type_links.any(
+                BusinessBusinessType.business_type == business_type
+            )
+            query = query.where(type_filter)
+            count_query = count_query.where(type_filter)
 
     if verification_status:
         query = query.where(Business.verification_status == verification_status)
@@ -139,14 +161,25 @@ def business_is_currently_verified(business: Business) -> bool:
     return last_verified >= verification_cutoff()
 
 
+def _types_unresolved(business: Business) -> bool:
+    if business_type_values(business):
+        return False
+    legacy = (business.business_type or "").strip().lower()
+    return legacy == LEGACY_BUSINESS_TYPE_MIXED or not legacy
+
+
 def serialize_business_summary(business: Business) -> dict[str, object]:
     location = business.locations[0] if business.locations else None
+    types = business_type_values(business)
     return {
         "id": business.id,
         "name": business.name,
         "slug": business.slug,
-        "business_type": business.business_type,
+        "business_types": types,
+        "legacy_business_type": business.business_type,
+        "types_unresolved": _types_unresolved(business),
         "accepts_public_dropoff": business.accepts_public_dropoff,
+        "offers_pickup": business.offers_pickup,
         "verification_status": business.verification_status,
         "last_verified_at": business.last_verified_at,
         "website_url": business.website_url,
@@ -208,10 +241,11 @@ def paginated_response(
     page_size: int,
     total: int,
 ) -> dict[str, object]:
+    total_pages = ceil(total / page_size) if total else 0
     return {
         "items": items,
         "page": page,
         "page_size": page_size,
         "total": total,
-        "total_pages": ceil(total / page_size) if total else 0,
+        "total_pages": total_pages,
     }

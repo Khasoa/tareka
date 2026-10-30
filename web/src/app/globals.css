@@ -1185,6 +1185,7 @@ input[type="search"]::-webkit-search-results-decoration {
 .materials__step {
   position: absolute;
   top: 50%;
+  z-index: 3;
   display: grid;
   place-items: center;
   width: 2rem;

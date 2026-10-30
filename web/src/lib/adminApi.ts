@@ -59,8 +59,11 @@ export type VerificationQueueItem = {
   id: number;
   name: string;
   slug: string;
-  business_type: string;
+  business_types: string[];
+  legacy_business_type: string | null;
+  types_unresolved: boolean;
   accepts_public_dropoff: string;
+  offers_pickup: string;
   verification_status: string;
   last_verified_at: string | null;
   website_url: string | null;

@@ -4,6 +4,7 @@ from app.modules.admin.models import AdminUser
 from app.modules.claims.models import BusinessClaim
 from app.modules.directory.models import Business
 from app.modules.suggestions.models import BusinessSuggestion
+from tests.conftest import make_business
 
 
 def suggestion_payload(**overrides):
@@ -69,10 +70,10 @@ def test_security_headers_are_present(client):
 
 
 def test_claim_without_consent_is_accepted(client, db_session):
-    business = Business(
+    business = make_business(
+        "recycler",
         name="Consent Test Recycler",
         slug="consent-test-recycler",
-        business_type="recycler",
         accepts_public_dropoff="yes",
         verification_status="verified",
     )

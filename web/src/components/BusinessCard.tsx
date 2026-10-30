@@ -1,17 +1,25 @@
 import Link from "next/link";
 import VerificationBadge from "@/components/VerificationBadge";
 import type { Business } from "@/lib/api";
-import {
-  dropoffLabel,
-  formatBusinessType,
-  formatLocation,
-} from "@/lib/publicLabels";
+import { formatBusinessTypesLine, formatLocation } from "@/lib/publicLabels";
 
 type BusinessCardProps = {
   business: Business;
   /** No longer shown: list position stops meaning anything once filters reorder results. */
   index?: number;
 };
+
+function ServiceDot({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center gap-2 text-sm text-[var(--color-ink)]">
+      <span
+        aria-hidden="true"
+        className="h-2 w-2 shrink-0 rounded-full bg-[var(--color-accent)] ring-1 ring-[var(--color-ink)]"
+      />
+      {label}
+    </span>
+  );
+}
 
 export default function BusinessCard({ business }: BusinessCardProps) {
   const primaryLocation = business.locations[0];
@@ -21,9 +29,10 @@ export default function BusinessCard({ business }: BusinessCardProps) {
   const materials = business.materials ?? [];
   const visibleMaterials = materials.slice(0, 3);
   const extraMaterials = materials.length - visibleMaterials.length;
-  const acceptsDropoff = ["yes", "true"].includes(
-    String(business.accepts_public_dropoff).toLowerCase(),
-  );
+  const typesLine = formatBusinessTypesLine(business.business_types);
+  const leadLine = [typesLine, location].filter(Boolean).join(" · ");
+  const showDropoff = business.accepts_public_dropoff === "yes";
+  const showPickup = business.offers_pickup === "yes";
 
   return (
     <article className="group relative flex min-w-0 flex-col border-b border-[var(--color-border)] py-6 transition-colors duration-200 hover:border-[var(--color-border-strong)] sm:rounded-[var(--radius-control)] sm:border sm:p-6">
@@ -38,32 +47,20 @@ export default function BusinessCard({ business }: BusinessCardProps) {
             </Link>
           </h3>
 
-          <p className="mt-2 text-sm capitalize text-[var(--color-muted)]">
-            {formatBusinessType(business.business_type)}
-            {location ? (
-              <>
-                <span aria-hidden="true"> · </span>
-                {location}
-              </>
-            ) : null}
-          </p>
+          {leadLine ? (
+            <p className="mt-2 text-sm text-[var(--color-muted)]">{leadLine}</p>
+          ) : null}
         </div>
 
         <VerificationBadge status={business.verification_status} size="sm" />
       </div>
 
-      <p className="mt-6 flex items-center gap-2 text-sm text-[var(--color-ink)]">
-        <span
-          aria-hidden="true"
-          className={[
-            "h-2 w-2 shrink-0 rounded-full ring-1",
-            acceptsDropoff
-              ? "bg-[var(--color-accent)] ring-[var(--color-ink)]"
-              : "ring-[var(--color-muted)]",
-          ].join(" ")}
-        />
-        {dropoffLabel(business.accepts_public_dropoff)}
-      </p>
+      {(showDropoff || showPickup) && (
+        <p className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2">
+          {showDropoff ? <ServiceDot label="Public drop-off" /> : null}
+          {showPickup ? <ServiceDot label="Pick-up" /> : null}
+        </p>
+      )}
 
       {materials.length > 0 && (
         <div className="mt-4 flex flex-wrap items-center gap-1.5">

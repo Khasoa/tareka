@@ -9,12 +9,21 @@ export const metadata = {
     "Learn how tareka verifies recovery businesses, helps people find material recovery options, and handles business claims and content consent.",
 };
 
-const steps = [
+type Step = {
+  number: string;
+  title: string;
+  paragraphs: string[];
+  sectionId?: string;
+};
+
+const steps: Step[] = [
   {
     number: "01",
-    title: "We research and verify businesses",
+    sectionId: "active",
+    title: "We research and confirm businesses",
     paragraphs: [
-      "We research businesses involved in recycling, collection, aggregation and upcycling. Before a business appears in our public directory, it must be active and marked as verified in our system.",
+      "We research businesses involved in recycling, collection, aggregation and upcycling. Before a business appears in our public directory, it must be active and have been confirmed by us within the past year.",
+      "When a business shows Active, we have confirmed that it is operating and that its listed services and materials were accurate at the time of checking. The date on each profile shows when we last checked. Public drop-off and pick-up are shown only when we have confirmed them. Active describes what we checked; it is not a licence, certification or endorsement.",
       "Our review considers relevant information such as business identity, location, materials handled, recovery activities and service details. Verification records can retain the review outcome, date, source information and notes.",
     ],
   },
@@ -22,8 +31,8 @@ const steps = [
     number: "02",
     title: "Find a recovery option",
     paragraphs: [
-      "Browse businesses by material, county, business type and public drop-off availability. Use the profile details to identify businesses that may be suitable for your materials.",
-      "Acceptance policies and operating arrangements can change. Contact the business to confirm what it currently accepts, any conditions or fees, and whether you need to arrange a visit before travelling.",
+      "Browse businesses by material, county, business type, and public drop-off or pick-up availability. Use the profile details to identify businesses that may be suitable for your materials.",
+      "Acceptance policies and operating arrangements can change. Contact the business to confirm what it currently accepts, any conditions or fees, and whether you need to arrange a visit or pick-up in advance.",
     ],
   },
   {
@@ -31,7 +40,7 @@ const steps = [
     title: "Businesses can claim their profiles",
     paragraphs: [
       "If you represent a business already in our directory, you can request to claim its profile. We review the request before approving a representative to help keep the business information accurate.",
-      "A claim can include proposed corrections or updated information. Submitting a claim does not automatically change a business's verification status; tareka reviews the claim separately.",
+      "A claim can include proposed corrections or updated information. Submitting a claim does not automatically change a business's Active status; tareka reviews the claim separately.",
     ],
   },
   {
@@ -46,7 +55,7 @@ const steps = [
     number: "05",
     title: "Help keep information accurate",
     paragraphs: [
-      "Business details, accepted materials and drop-off arrangements can change. We may review information periodically and update a profile when new information is confirmed.",
+      "Business details, accepted materials and drop-off and pick-up arrangements can change. We may review information periodically and update a profile when new information is confirmed.",
       "If you know a business we should consider, or spot information that needs correcting, you can suggest a business or contact us.",
     ],
   },
@@ -87,6 +96,12 @@ export default function HowItWorksPage() {
           {steps.map((step) => (
             <section
               key={step.number}
+              id={step.sectionId}
+              style={
+                step.sectionId
+                  ? { scrollMarginTop: "var(--site-header-h)" }
+                  : undefined
+              }
               className="grid grid-cols-1 gap-4 border-b border-[var(--color-border)] py-8 sm:grid-cols-[72px_1fr] sm:gap-8 sm:py-10"
             >
               <p className="text-sm font-medium tabular-nums text-[var(--color-muted)]">

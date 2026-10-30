@@ -6,9 +6,10 @@ import Header from "@/components/Header";
 import VerificationBadge from "@/components/VerificationBadge";
 import { getBusiness } from "@/lib/api";
 import {
-  dropoffLabel,
-  formatBusinessType,
+  formatBusinessTypesLine,
+  formatLastChecked,
   formatLocation,
+  serviceAvailabilityPublicDetail,
 } from "@/lib/publicLabels";
 
 type BusinessPageProps = {
@@ -22,6 +23,31 @@ function isSafeHttpUrl(value: string): boolean {
   } catch {
     return false;
   }
+}
+
+function ServiceRow({
+  title,
+  value,
+}: {
+  title: string;
+  value: string;
+}) {
+  const display = serviceAvailabilityPublicDetail(value);
+
+  return (
+    <section>
+      <h2 className="kicker">{title}</h2>
+      <p className="mt-3 flex items-center gap-2.5 text-base text-[var(--color-ink)]">
+        {display.showGreenDot ? (
+          <span
+            aria-hidden="true"
+            className="h-2 w-2 shrink-0 rounded-full bg-[var(--color-accent)] ring-1 ring-[var(--color-ink)]"
+          />
+        ) : null}
+        {display.label}
+      </p>
+    </section>
+  );
 }
 
 export default async function BusinessPage({ params }: BusinessPageProps) {
@@ -38,9 +64,8 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
     ? formatLocation(primaryLocation.town, primaryLocation.county)
     : "";
   const materials = business.materials ?? [];
-  const acceptsDropoff = ["yes", "true"].includes(
-    String(business.accepts_public_dropoff).toLowerCase(),
-  );
+  const typesLine = formatBusinessTypesLine(business.business_types);
+  const leadLine = [typesLine, location].filter(Boolean).join(" · ");
   const websiteHref =
     business.website_url && isSafeHttpUrl(business.website_url)
       ? business.website_url
@@ -51,6 +76,9 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
       )}`
     : "";
   const hasContact = Boolean(business.phone || websiteHref || business.email);
+  const lastChecked = business.last_verified_at
+    ? formatLastChecked(business.last_verified_at)
+    : null;
 
   return (
     <>
@@ -80,15 +108,21 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
               />
             </div>
 
-            <p className="mt-3 text-sm capitalize text-[var(--color-muted)]">
-              {formatBusinessType(business.business_type)}
-              {location ? (
-                <>
-                  <span aria-hidden="true"> · </span>
-                  {location}
-                </>
-              ) : null}
-            </p>
+            {leadLine ? (
+              <p className="mt-3 text-sm text-[var(--color-muted)]">{leadLine}</p>
+            ) : null}
+
+            {lastChecked ? (
+              <p className="mt-4 text-sm text-[var(--color-body)]">
+                Confirmed active · Last checked {lastChecked}{" "}
+                <Link
+                  href="/how-it-works#active"
+                  className="link-accent font-normal text-[var(--color-muted)]"
+                >
+                  How we check
+                </Link>
+              </p>
+            ) : null}
           </header>
 
           <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)] lg:items-start">
@@ -123,21 +157,11 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
             </div>
 
             <aside className="flex flex-col gap-10 border-t border-[var(--color-border)] pt-10 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
-              <section>
-                <h2 className="kicker">Drop-off</h2>
-                <p className="mt-3 flex items-center gap-2.5 text-base text-[var(--color-ink)]">
-                  <span
-                    aria-hidden="true"
-                    className={[
-                      "h-2 w-2 shrink-0 rounded-full ring-1",
-                      acceptsDropoff
-                        ? "bg-[var(--color-accent)] ring-[var(--color-ink)]"
-                        : "ring-[var(--color-muted)]",
-                    ].join(" ")}
-                  />
-                  {dropoffLabel(business.accepts_public_dropoff)}
-                </p>
-              </section>
+              <ServiceRow
+                title="Public drop-off"
+                value={business.accepts_public_dropoff}
+              />
+              <ServiceRow title="Pick-up" value={business.offers_pickup} />
 
               {location ? (
                 <section>

@@ -7,6 +7,10 @@ import {
   type Suggestion,
 } from "@/lib/adminApi";
 import { AdminShell } from "@/components/admin/AdminShell";
+import {
+  CANONICAL_BUSINESS_TYPES,
+  businessTypeLabel,
+} from "@/lib/publicLabels";
 
 function slugify(value: string) {
   return value
@@ -28,8 +32,9 @@ function SuggestionCard({
   onDone: () => Promise<void>;
 }) {
   const [slug, setSlug] = useState(slugify(suggestion.name));
-  const [businessType, setBusinessType] = useState("recycler");
+  const [businessTypes, setBusinessTypes] = useState<string[]>(["recycler"]);
   const [dropoff, setDropoff] = useState("unknown");
+  const [pickup, setPickup] = useState("unknown");
   const [description, setDescription] = useState("");
   const [town, setTown] = useState("");
   const [website, setWebsite] = useState("");
@@ -52,6 +57,11 @@ function SuggestionCard({
   async function publish() {
     if (!description.trim()) {
       setError("Write a researched description before publishing.");
+      return;
+    }
+
+    if (businessTypes.length === 0) {
+      setError("Select at least one business type.");
       return;
     }
 
@@ -84,8 +94,9 @@ function SuggestionCard({
           method: "POST",
           body: JSON.stringify({
             slug: slug.trim(),
-            business_type: businessType,
+            business_types: businessTypes,
             accepts_public_dropoff: dropoff,
+            offers_pickup: pickup,
             description: description.trim(),
             town: town.trim() || null,
             website_url: website.trim() || null,
@@ -251,20 +262,32 @@ function SuggestionCard({
               />
             </label>
 
-            <label className="text-sm font-semibold">
-              Business type
-
-              <select
-                value={businessType}
-                onChange={(event) => setBusinessType(event.target.value)}
-                className="input-field mt-2 py-2.5"
-              >
-                <option value="recycler">Recycler</option>
-                <option value="upcycler">Upcycler</option>
-                <option value="collector">Collector</option>
-                <option value="mixed">Mixed</option>
-              </select>
-            </label>
+            <fieldset className="text-sm font-semibold sm:col-span-2">
+              <legend>Business types</legend>
+              <p className="mt-1 text-xs font-normal leading-5 text-[var(--color-muted)]">
+                Assign only types supported by evidence. A business may have
+                more than one.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-4">
+                {CANONICAL_BUSINESS_TYPES.map((value) => (
+                  <label key={value} className="flex items-center gap-2 font-normal">
+                    <input
+                      type="checkbox"
+                      checked={businessTypes.includes(value)}
+                      onChange={(event) => {
+                        setBusinessTypes((current) =>
+                          event.target.checked
+                            ? [...current, value]
+                            : current.filter((item) => item !== value),
+                        );
+                      }}
+                      className="h-4 w-4 accent-[var(--color-ink)]"
+                    />
+                    {businessTypeLabel(value)}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
 
             <label className="text-sm font-semibold">
               Public drop-off
@@ -272,6 +295,20 @@ function SuggestionCard({
               <select
                 value={dropoff}
                 onChange={(event) => setDropoff(event.target.value)}
+                className="input-field mt-2 py-2.5"
+              >
+                <option value="unknown">Unknown</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+
+            <label className="text-sm font-semibold">
+              Pick-up
+
+              <select
+                value={pickup}
+                onChange={(event) => setPickup(event.target.value)}
                 className="input-field mt-2 py-2.5"
               >
                 <option value="unknown">Unknown</option>

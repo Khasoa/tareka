@@ -11,18 +11,19 @@ import {
   type VerificationQueueResponse,
 } from "@/lib/adminApi";
 import {
-  dropoffLabel,
-  formatBusinessType,
+  adminServiceAvailabilityLabel,
+  formatBusinessTypesLine,
   formatLocation,
   verificationDisplay,
 } from "@/lib/publicLabels";
 
 const BUSINESS_TYPES = [
   { value: "", label: "All types" },
+  { value: "collector", label: "Collector" },
+  { value: "aggregator", label: "Aggregator" },
   { value: "recycler", label: "Recycler" },
   { value: "upcycler", label: "Upcycler" },
-  { value: "collector", label: "Collector" },
-  { value: "mixed", label: "Mixed" },
+  { value: "mixed", label: "Unresolved (legacy mixed / no type)" },
 ];
 
 const STATUS_FILTERS = [
@@ -297,10 +298,19 @@ export default function AdminVerificationPage() {
                       {formatLocation(business.town, business.county) ||
                         "Location not recorded"}
                       {" · "}
-                      {formatBusinessType(business.business_type)}
+                      {formatBusinessTypesLine(business.business_types) ||
+                        (business.types_unresolved
+                          ? "Types unresolved"
+                          : "Type not recorded")}
                     </p>
                   </div>
-                  <span
+                  <div className="flex flex-wrap items-center gap-2">
+                    {business.types_unresolved ? (
+                      <span className="rounded-[var(--radius-control)] border border-amber-600/40 bg-amber-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
+                        Types unresolved
+                      </span>
+                    ) : null}
+                    <span
                     className={`rounded-[var(--radius-control)] border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
                       status.tone === "verified"
                         ? "border-[var(--color-border-strong)]"
@@ -310,7 +320,8 @@ export default function AdminVerificationPage() {
                     }`}
                   >
                     {status.label}
-                  </span>
+                    </span>
+                  </div>
                 </div>
 
                 <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
@@ -325,7 +336,11 @@ export default function AdminVerificationPage() {
                       Public drop-off
                     </dt>
                     <dd className="mt-0.5 text-[var(--color-body)]">
-                      {dropoffLabel(business.accepts_public_dropoff)}
+                      {adminServiceAvailabilityLabel(
+                        business.accepts_public_dropoff,
+                      )}
+                      {" · Pick-up "}
+                      {adminServiceAvailabilityLabel(business.offers_pickup)}
                     </dd>
                   </div>
                 </dl>

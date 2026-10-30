@@ -55,8 +55,8 @@ export default function TermsPage() {
             <p className="mt-3">
               You are responsible for independently confirming details that may
               affect your decision to visit or contact a business. This
-              includes opening hours, accepted materials, prices, collection or
-              drop-off arrangements, location, availability, and other
+              includes opening hours, accepted materials, prices, collection,
+              pick-up or drop-off arrangements, location, availability, and other
               operational details.
             </p>
 
@@ -75,8 +75,9 @@ export default function TermsPage() {
 
             <p className="mt-3">
               tareka may research and verify business information using
-              available evidence. A verification status indicates the state of
-              our review at the relevant time; it does not constitute an
+              available evidence. A business&apos;s Active status, together with
+              the last-checked date shown on its profile, indicates the state of
+              our review at that time; it does not constitute a licence,
               endorsement, certification, accreditation, or guarantee of the
               business.
             </p>

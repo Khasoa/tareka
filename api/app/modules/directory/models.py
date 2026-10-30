@@ -13,8 +13,11 @@ class Business(Base):
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     slug: Mapped[str] = mapped_column(String(220), unique=True, nullable=False)
 
-    business_type: Mapped[str] = mapped_column(String(30), nullable=False)
+    business_type: Mapped[str | None] = mapped_column(String(30), nullable=True)
     accepts_public_dropoff: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="unknown"
+    )
+    offers_pickup: Mapped[str] = mapped_column(
         String(20), nullable=False, default="unknown"
     )
 
@@ -59,9 +62,23 @@ class Business(Base):
     materials: Mapped[list["BusinessMaterial"]] = relationship(
         back_populates="business", cascade="all, delete-orphan"
     )
+    business_type_links: Mapped[list["BusinessBusinessType"]] = relationship(
+        back_populates="business", cascade="all, delete-orphan"
+    )
     verification_records: Mapped[list["VerificationRecord"]] = relationship(
         back_populates="business", cascade="all, delete-orphan"
     )
+
+
+class BusinessBusinessType(Base):
+    __tablename__ = "business_business_types"
+
+    business_id: Mapped[int] = mapped_column(
+        ForeignKey("businesses.id", ondelete="CASCADE"), primary_key=True
+    )
+    business_type: Mapped[str] = mapped_column(String(30), primary_key=True)
+
+    business: Mapped["Business"] = relationship(back_populates="business_type_links")
 
 
 class Location(Base):

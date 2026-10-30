@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import BusinessCard from "@/components/BusinessCard";
 import HeroDirectorySearch from "@/components/HeroDirectorySearch";
 import { getBusinesses, type Business } from "@/lib/api";
+import { businessTypeSelectValue } from "@/lib/directorySearchParams";
 
 type Material = {
   id: number;
@@ -29,7 +30,27 @@ const FILTER_KEYS = [
   "county",
   "business_type",
   "accepts_public_dropoff",
+  "offers_pickup",
 ] as const;
+
+const CANONICAL_TYPE_OPTIONS = [
+  { value: "collector", label: "Collector" },
+  { value: "aggregator", label: "Aggregator" },
+  { value: "recycler", label: "Recycler" },
+  { value: "upcycler", label: "Upcycler" },
+] as const;
+
+function resolveAccessFilter(
+  searchParams: URLSearchParams,
+): "" | "dropoff" | "pickup" {
+  if (searchParams.get("accepts_public_dropoff") === "yes") {
+    return "dropoff";
+  }
+  if (searchParams.get("offers_pickup") === "yes") {
+    return "pickup";
+  }
+  return "";
+}
 
 function resolveMaterialSlug(
   searchParams: URLSearchParams,
@@ -61,7 +82,9 @@ export default function DirectoryHome({
   const query = (searchParams.get("q") ?? "").trim();
   const county = searchParams.get("county") ?? "";
   const dropoff = searchParams.get("accepts_public_dropoff") ?? "";
-  const businessType = searchParams.get("business_type") ?? "";
+  const pickup = searchParams.get("offers_pickup") ?? "";
+  const businessType = businessTypeSelectValue(searchParams.get("business_type"));
+  const accessFilter = resolveAccessFilter(searchParams);
   const selectedSlug = useMemo(
     () => resolveMaterialSlug(searchParams, materials),
     [searchParams, materials],
@@ -73,7 +96,7 @@ export default function DirectoryHome({
   );
 
   const filtersActive = Boolean(
-    query || selectedSlug || county || dropoff || businessType,
+    query || selectedSlug || county || dropoff || pickup || businessType,
   );
 
   const [businesses, setBusinesses] = useState(initialBusinesses);
@@ -128,6 +151,7 @@ export default function DirectoryHome({
         !query &&
         !county &&
         !dropoff &&
+        !pickup &&
         !businessType &&
         !selectedMaterial &&
         initialTotalRef.current > 0
@@ -150,6 +174,7 @@ export default function DirectoryHome({
       if (query) params.set("q", query);
       if (county) params.set("county", county);
       if (dropoff) params.set("accepts_public_dropoff", dropoff);
+      if (pickup) params.set("offers_pickup", pickup);
       if (businessType) params.set("business_type", businessType);
       if (selectedMaterial) {
         params.set("material_id", String(selectedMaterial.id));
@@ -177,7 +202,7 @@ export default function DirectoryHome({
     return () => {
       cancelled = true;
     };
-  }, [query, county, dropoff, businessType, selectedMaterial]);
+  }, [query, county, dropoff, pickup, businessType, selectedMaterial]);
 
   function resetFilters() {
     const params = new URLSearchParams(searchParams.toString());
@@ -202,6 +227,7 @@ export default function DirectoryHome({
     if (query) params.set("q", query);
     if (county) params.set("county", county);
     if (dropoff) params.set("accepts_public_dropoff", dropoff);
+    if (pickup) params.set("offers_pickup", pickup);
     if (businessType) params.set("business_type", businessType);
     if (selectedMaterial) {
       params.set("material_id", String(selectedMaterial.id));
@@ -255,31 +281,47 @@ export default function DirectoryHome({
                   business_type: event.target.value || null,
                 })
               }
-              className="select-field capitalize"
+              className="select-field"
             >
-              <option value="">All business types</option>
-              <option value="recycler">Recycler</option>
-              <option value="upcycler">Upcycler</option>
-              <option value="collector">Collector</option>
-              <option value="mixed">Mixed</option>
+              <option value="">All Business Types</option>
+              {CANONICAL_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </label>
 
           <label>
-            <span className="sr-only">Public drop-off</span>
+            <span className="sr-only">Drop-off and pick-up</span>
             <select
-              value={dropoff}
-              onChange={(event) =>
+              value={accessFilter}
+              onChange={(event) => {
+                const value = event.target.value;
+                if (value === "dropoff") {
+                  replaceFilterParams({
+                    accepts_public_dropoff: "yes",
+                    offers_pickup: null,
+                  });
+                  return;
+                }
+                if (value === "pickup") {
+                  replaceFilterParams({
+                    offers_pickup: "yes",
+                    accepts_public_dropoff: null,
+                  });
+                  return;
+                }
                 replaceFilterParams({
-                  accepts_public_dropoff: event.target.value || null,
-                })
-              }
+                  accepts_public_dropoff: null,
+                  offers_pickup: null,
+                });
+              }}
               className="select-field"
             >
-              <option value="">Any drop-off status</option>
-              <option value="yes">Accepts public drop-off</option>
-              <option value="no">No public drop-off</option>
-              <option value="unknown">Not confirmed</option>
+              <option value="">All collection options</option>
+              <option value="dropoff">Public drop-off</option>
+              <option value="pickup">Pick-up</option>
             </select>
           </label>
         </div>
