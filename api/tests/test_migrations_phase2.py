@@ -368,10 +368,13 @@ def _related_record_counts(conn) -> tuple[int, int, int, int, int]:
 def test_disposable_database_url_repr_masks_password():
     configured = make_url(settings.database_url)
     disposable = _disposable_target_url()
-    if not configured.password:
+    password = configured.password
+    if not password:
         pytest.skip("Configured database URL has no password to verify masking.")
-    assert configured.password not in repr(disposable)
-    assert configured.password not in str(disposable)
+    credential_fragment = f":{password}@"
+    assert credential_fragment not in repr(disposable)
+    assert credential_fragment not in str(disposable)
+    assert "***" in repr(disposable)
 
 
 @pytest.fixture(scope="module")
