@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import MaterialsExhibition from "@/components/MaterialsExhibition";
 import BusinessCard from "@/components/BusinessCard";
+import HeroDirectorySearch from "@/components/HeroDirectorySearch";
 import { getBusinesses, type Business } from "@/lib/api";
+import { businessTypeSelectValue } from "@/lib/directorySearchParams";
 
 type Material = {
   id: number;
@@ -29,7 +30,27 @@ const FILTER_KEYS = [
   "county",
   "business_type",
   "accepts_public_dropoff",
+  "offers_pickup",
 ] as const;
+
+const CANONICAL_TYPE_OPTIONS = [
+  { value: "collector", label: "Collector" },
+  { value: "aggregator", label: "Aggregator" },
+  { value: "recycler", label: "Recycler" },
+  { value: "upcycler", label: "Upcycler" },
+] as const;
+
+function resolveAccessFilter(
+  searchParams: URLSearchParams,
+): "" | "dropoff" | "pickup" {
+  if (searchParams.get("accepts_public_dropoff") === "yes") {
+    return "dropoff";
+  }
+  if (searchParams.get("offers_pickup") === "yes") {
+    return "pickup";
+  }
+  return "";
+}
 
 function resolveMaterialSlug(
   searchParams: URLSearchParams,
@@ -61,7 +82,9 @@ export default function DirectoryHome({
   const query = (searchParams.get("q") ?? "").trim();
   const county = searchParams.get("county") ?? "";
   const dropoff = searchParams.get("accepts_public_dropoff") ?? "";
-  const businessType = searchParams.get("business_type") ?? "";
+  const pickup = searchParams.get("offers_pickup") ?? "";
+  const businessType = businessTypeSelectValue(searchParams.get("business_type"));
+  const accessFilter = resolveAccessFilter(searchParams);
   const selectedSlug = useMemo(
     () => resolveMaterialSlug(searchParams, materials),
     [searchParams, materials],
@@ -73,7 +96,7 @@ export default function DirectoryHome({
   );
 
   const filtersActive = Boolean(
-    query || selectedSlug || county || dropoff || businessType,
+    query || selectedSlug || county || dropoff || pickup || businessType,
   );
 
   const [businesses, setBusinesses] = useState(initialBusinesses);
@@ -106,6 +129,16 @@ export default function DirectoryHome({
     router.replace(next ? `/?${next}` : "/", { scroll: false });
   }
 
+  // Remember the current filters so the business page's "Back to directory"
+  // link can restore them.
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("directory-params", searchParams.toString());
+    } catch {
+      // storage unavailable: the back link falls back to the plain directory
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     // The server renders the unfiltered first page. Skip only that duplicate
     // request. A query or filter already in the URL still needs a fetch,
@@ -118,6 +151,7 @@ export default function DirectoryHome({
         !query &&
         !county &&
         !dropoff &&
+        !pickup &&
         !businessType &&
         !selectedMaterial &&
         initialTotalRef.current > 0
@@ -140,6 +174,7 @@ export default function DirectoryHome({
       if (query) params.set("q", query);
       if (county) params.set("county", county);
       if (dropoff) params.set("accepts_public_dropoff", dropoff);
+      if (pickup) params.set("offers_pickup", pickup);
       if (businessType) params.set("business_type", businessType);
       if (selectedMaterial) {
         params.set("material_id", String(selectedMaterial.id));
@@ -167,11 +202,7 @@ export default function DirectoryHome({
     return () => {
       cancelled = true;
     };
-  }, [query, county, dropoff, businessType, selectedMaterial]);
-
-  function selectMaterial(slug: string) {
-    replaceFilterParams({ material: slug || null });
-  }
+  }, [query, county, dropoff, pickup, businessType, selectedMaterial]);
 
   function resetFilters() {
     const params = new URLSearchParams(searchParams.toString());
@@ -196,6 +227,7 @@ export default function DirectoryHome({
     if (query) params.set("q", query);
     if (county) params.set("county", county);
     if (dropoff) params.set("accepts_public_dropoff", dropoff);
+    if (pickup) params.set("offers_pickup", pickup);
     if (businessType) params.set("business_type", businessType);
     if (selectedMaterial) {
       params.set("material_id", String(selectedMaterial.id));
@@ -215,47 +247,15 @@ export default function DirectoryHome({
   }
 
   return (
-    <>
-      <MaterialsExhibition
-        selectedSlug={selectedSlug}
-        onSelectMaterial={selectMaterial}
-      />
+    <section id="directory" className="page-shell directory-listing pb-16">
+      <h2 className="sr-only">Find your next step</h2>
 
-      <section
-        id="directory"
-        className="mx-auto max-w-[var(--content-max-width)] scroll-mt-6 px-5 pb-16 pt-8 sm:px-8 sm:pt-12 lg:px-12"
-      >
-        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--color-border)] pb-5">
-          <div>
-            <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--color-muted)] sm:text-xs">
-              The directory
-            </p>
-            <h2 className="section-heading">
-              Find your next step.
-            </h2>
-            <p className="mt-2 text-sm text-[var(--color-muted)]">
-              {loading
-                ? "Updating results…"
-                : query
-                  ? `${total} ${total === 1 ? "result" : "results"} for “${query}”`
-                  : `${total} businesses to explore`}
-            </p>
-          </div>
+      <div className="directory-toolbar">
+        <HeroDirectorySearch className="directory-toolbar__search" />
 
-          {filtersActive && (
-            <button
-              type="button"
-              onClick={resetFilters}
-              className="text-sm underline decoration-[var(--color-accent)] decoration-2 underline-offset-4"
-            >
-              Clear filters
-            </button>
-          )}
-        </div>
-
-        <div className="grid gap-3 py-5 sm:grid-cols-2 lg:grid-cols-3">
-          <label className="flex flex-col gap-2 text-xs text-[var(--color-muted)]">
-            County
+        <div className="directory-toolbar__filters">
+          <label>
+            <span className="sr-only">County</span>
             <select
               value={county}
               onChange={(event) =>
@@ -272,26 +272,8 @@ export default function DirectoryHome({
             </select>
           </label>
 
-          <label className="flex flex-col gap-2 text-xs text-[var(--color-muted)]">
-            Public drop-off
-            <select
-              value={dropoff}
-              onChange={(event) =>
-                replaceFilterParams({
-                  accepts_public_dropoff: event.target.value || null,
-                })
-              }
-              className="select-field"
-            >
-              <option value="">Any drop-off status</option>
-              <option value="yes">Accepts public drop-off</option>
-              <option value="no">No public drop-off</option>
-              <option value="unknown">Not confirmed</option>
-            </select>
-          </label>
-
-          <label className="flex flex-col gap-2 text-xs text-[var(--color-muted)] sm:col-span-2 lg:col-span-1">
-            Business type
+          <label>
+            <span className="sr-only">Business type</span>
             <select
               value={businessType}
               onChange={(event) =>
@@ -299,67 +281,128 @@ export default function DirectoryHome({
                   business_type: event.target.value || null,
                 })
               }
-              className="select-field capitalize"
+              className="select-field"
             >
-              <option value="">All business types</option>
-              <option value="recycler">Recycler</option>
-              <option value="upcycler">Upcycler</option>
-              <option value="collector">Collector</option>
-              <option value="mixed">Mixed</option>
+              <option value="">All Business Types</option>
+              {CANONICAL_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            <span className="sr-only">Drop-off and pick-up</span>
+            <select
+              value={accessFilter}
+              onChange={(event) => {
+                const value = event.target.value;
+                if (value === "dropoff") {
+                  replaceFilterParams({
+                    accepts_public_dropoff: "yes",
+                    offers_pickup: null,
+                  });
+                  return;
+                }
+                if (value === "pickup") {
+                  replaceFilterParams({
+                    offers_pickup: "yes",
+                    accepts_public_dropoff: null,
+                  });
+                  return;
+                }
+                replaceFilterParams({
+                  accepts_public_dropoff: null,
+                  offers_pickup: null,
+                });
+              }}
+              className="select-field"
+            >
+              <option value="">All collection options</option>
+              <option value="dropoff">Public drop-off</option>
+              <option value="pickup">Pick-up</option>
             </select>
           </label>
         </div>
+      </div>
 
-        {error && (
-          <p role="alert" className="py-5 text-sm text-[var(--color-danger)]">
-            {error}
-          </p>
-        )}
-
-        {!loading && businesses.length === 0 && !error && (
-          <div className="border-b border-[var(--color-border)] py-12">
-            <h3 className="font-display text-xl font-semibold">
-              No matches just yet.
-            </h3>
-            <p className="mt-2 text-sm text-[var(--color-muted)]">
-              Try another material or broaden your filters.
+      {(filtersActive || loading) && (
+        <div className="directory-status">
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="m-0 text-sm text-[var(--color-muted)]">
+              {loading
+                ? "Updating results…"
+                : query
+                  ? `${total} ${total === 1 ? "result" : "results"} for “${query}”`
+                  : `${total} ${total === 1 ? "business" : "businesses"}`}
             </p>
+
+            {selectedMaterial && (
+              <button
+                type="button"
+                onClick={() => replaceFilterParams({ material: null })}
+                aria-label={`Remove ${selectedMaterial.name} filter`}
+                className="filter-chip"
+              >
+                {selectedMaterial.name}
+                <span aria-hidden="true">×</span>
+              </button>
+            )}
+          </div>
+
+          {filtersActive && (
             <button
               type="button"
               onClick={resetFilters}
-              className="mt-4 text-sm underline decoration-[var(--color-accent)] decoration-2 underline-offset-4"
+              className="link-accent text-sm"
             >
-              Show all businesses
+              Clear filters
             </button>
-          </div>
-        )}
-
-        <div
-          aria-busy={loading}
-          className="grid grid-cols-1 gap-x-5 gap-y-5 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-6 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-7"
-        >
-          {businesses.map((business, index) => (
-            <BusinessCard
-              key={business.id}
-              business={business}
-              index={index}
-            />
-          ))}
+          )}
         </div>
+      )}
 
-        {businesses.length > 0 && businesses.length < total && (
-          <div className="flex justify-center border-t border-[var(--color-border)] py-8">
-            <button
-              type="button"
-              onClick={loadMore}
-              disabled={loading}
-              className="btn-primary min-h-12 disabled:cursor-wait"
-            >
-              {loading ? "Loading…" : "Load more businesses"}
-            </button>
-          </div>
-        )}
-      </section>
-    </>
+      {error && (
+        <p role="alert" className="py-5 text-sm text-[var(--color-danger)]">
+          {error}
+        </p>
+      )}
+
+      {!loading && businesses.length === 0 && !error && (
+        <div className="border-b border-[var(--color-border)] py-12">
+          <h3 className="text-xl font-medium">No matches just yet.</h3>
+          <p className="mt-2 text-sm text-[var(--color-muted)]">
+            Try another material or broaden your filters.
+          </p>
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="link-accent mt-4 text-sm"
+          >
+            Show all businesses
+          </button>
+        </div>
+      )}
+
+      <div aria-busy={loading} className="directory-results">
+        {businesses.map((business) => (
+          <BusinessCard key={business.id} business={business} />
+        ))}
+      </div>
+
+      {businesses.length > 0 && businesses.length < total && (
+        <div className="flex justify-center border-t border-[var(--color-border)] py-8">
+          <button
+            type="button"
+            onClick={loadMore}
+            disabled={loading}
+            className="btn-primary min-h-12 disabled:cursor-wait"
+          >
+            {loading ? "Loading…" : "Load more businesses"}
+          </button>
+        </div>
+      )}
+    </section>
   );
 }

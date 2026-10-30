@@ -9,6 +9,24 @@ from app.core.config import settings
 from app.core.database import Base, get_db
 from app.core.rate_limit import limiter
 from app.main import app
+from app.modules.directory.models import Business, BusinessBusinessType
+
+
+def attach_business_types(business: Business, *types: str) -> Business:
+    for business_type in types:
+        business.business_type_links.append(
+            BusinessBusinessType(business_type=business_type)
+        )
+    return business
+
+
+def make_business(*types: str, **kwargs) -> Business:
+    kwargs.setdefault("business_type", None)
+    kwargs.setdefault("offers_pickup", "unknown")
+    business = Business(**kwargs)
+    if types:
+        attach_business_types(business, *types)
+    return business
 
 
 def _test_database_url() -> str:

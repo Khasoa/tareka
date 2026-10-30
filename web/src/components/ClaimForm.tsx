@@ -99,7 +99,7 @@ export default function ClaimForm({ businessId }: ClaimFormProps) {
         </p>
 
         <Link
-          href="/#directory"
+          href="/"
           className="btn-primary mt-7"
         >
           Back to directory

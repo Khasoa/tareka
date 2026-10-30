@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class LocationResponse(BaseModel):
@@ -29,8 +29,9 @@ class BusinessListItem(BaseModel):
     id: int
     name: str
     slug: str
-    business_type: str
+    business_types: list[str] = Field(default_factory=list)
     accepts_public_dropoff: str
+    offers_pickup: str
     verification_status: str
     last_verified_at: datetime | None = None
     locations: list[LocationResponse] = []
@@ -43,8 +44,9 @@ class BusinessResponse(BaseModel):
     id: int
     name: str
     slug: str
-    business_type: str
+    business_types: list[str] = Field(default_factory=list)
     accepts_public_dropoff: str
+    offers_pickup: str
     verification_status: str
     last_verified_at: datetime | None = None
     description: str | None = None

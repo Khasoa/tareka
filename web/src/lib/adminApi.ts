@@ -43,6 +43,81 @@ export type Claim = {
   reviewed_at: string | null;
 };
 
+export type AdminOverview = {
+  pending_verification: number;
+  new_suggestions: number;
+  pending_claims: number;
+};
+
+export type VerificationMaterial = {
+  id: number;
+  name: string;
+  slug: string;
+};
+
+export type VerificationQueueItem = {
+  id: number;
+  name: string;
+  slug: string;
+  business_types: string[];
+  legacy_business_type: string | null;
+  types_unresolved: boolean;
+  accepts_public_dropoff: string;
+  offers_pickup: string;
+  verification_status: string;
+  last_verified_at: string | null;
+  website_url: string | null;
+  phone: string | null;
+  source_url: string | null;
+  county: string | null;
+  town: string | null;
+  materials: VerificationMaterial[];
+};
+
+export type VerificationQueueResponse = {
+  items: VerificationQueueItem[];
+  page: number;
+  page_size: number;
+  total: number;
+  total_pages: number;
+};
+
+export type VerificationRecordSummary = {
+  id: number;
+  status: string;
+  verified_at: string;
+  source_type: string | null;
+  source_url: string | null;
+  notes: string | null;
+};
+
+export type AdminBusinessDetail = VerificationQueueItem & {
+  description: string | null;
+  email: string | null;
+  source_type: string | null;
+  is_active: boolean;
+  locations: {
+    county: string;
+    town: string | null;
+    address: string | null;
+  }[];
+  verification_records: VerificationRecordSummary[];
+};
+
+export type VerificationAnswer =
+  | "confirmed"
+  | "not_confirmed"
+  | "unknown";
+
+export type VerifyBusinessPayload = {
+  existence_confirmed: VerificationAnswer;
+  identity_consistent: VerificationAnswer;
+  location_confirmed: VerificationAnswer;
+  materials_confirmed: VerificationAnswer;
+  dropoff_policy_confirmed: VerificationAnswer;
+  notes: string;
+};
+
 export async function adminRequest<T>(
   path: string,
   options: RequestOptions = {},

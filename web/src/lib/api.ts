@@ -38,8 +38,9 @@ export type Business = {
   id: number;
   name: string;
   slug: string;
-  business_type: string;
+  business_types: string[];
   accepts_public_dropoff: string;
+  offers_pickup: string;
   verification_status: string;
   last_verified_at: string | null;
   locations: Location[];

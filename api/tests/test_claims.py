@@ -1,7 +1,7 @@
 from app.modules.admin.models import AdminUser
 from app.modules.admin.security import hash_password
 from app.modules.claims.models import BusinessClaim
-from app.modules.directory.models import Business
+from tests.conftest import make_business
 
 TEST_ADMIN_EMAIL = "claims-admin@example.org"
 TEST_ADMIN_PASSWORD = "a-long-test-password"
@@ -17,10 +17,10 @@ def create_business(
     image_consent=False,
     is_active=True,
 ):
-    business = Business(
+    business = make_business(
+        "recycler",
         name=name,
         slug=slug,
-        business_type="recycler",
         accepts_public_dropoff="yes",
         verification_status=verification_status,
         content_use_consent=content_use_consent,

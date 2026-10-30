@@ -1,9 +1,9 @@
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
 from app.core.config import settings
@@ -21,6 +21,20 @@ from app.modules.admin.security import (
     verify_password,
 )
 from app.modules.admin.service import require_admin
+from app.modules.admin.verification_service import (
+    business_is_currently_verified,
+    count_businesses_needing_verification,
+    get_admin_business,
+    list_businesses_needing_verification,
+    paginated_response,
+    serialize_business_detail,
+    serialize_business_summary,
+)
+from app.modules.claims.models import BusinessClaim
+from app.modules.directory.constants import (
+    validate_business_types,
+    validate_service_availability,
+)
 from app.modules.directory.models import (
     Business,
     BusinessMaterial,
@@ -28,6 +42,7 @@ from app.modules.directory.models import (
     Material,
     VerificationRecord,
 )
+from app.modules.directory.type_utils import replace_business_types
 from app.modules.suggestions.models import BusinessSuggestion
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -40,8 +55,9 @@ class LoginRequest(BaseModel):
 
 class PublishSuggestionRequest(BaseModel):
     slug: str = Field(min_length=2, max_length=220)
-    business_type: str
+    business_types: list[str] = Field(min_length=1)
     accepts_public_dropoff: str
+    offers_pickup: str = "unknown"
     description: str = Field(min_length=1, max_length=5000)
     town: str | None = Field(default=None, max_length=100)
     website_url: str | None = Field(default=None, max_length=500)
@@ -49,6 +65,15 @@ class PublishSuggestionRequest(BaseModel):
     image_url: str | None = Field(default=None, max_length=500)
     image_alt: str | None = Field(default=None, max_length=200)
     material_ids: list[int] = Field(default_factory=list)
+
+
+class UpdateBusinessServicesRequest(BaseModel):
+    accepts_public_dropoff: str
+    offers_pickup: str
+
+
+class UpdateBusinessTypesRequest(BaseModel):
+    business_types: list[str] = Field(min_length=1)
 
 
 VerificationAnswer = Literal["confirmed", "not_confirmed", "unknown"]
@@ -156,43 +181,167 @@ def get_current_admin(
     return {"email": admin.email}
 
 
-@router.get("/businesses/needs-verification")
-def list_businesses_needing_verification(
+@router.get("/overview")
+def admin_overview(
     db: DbSession,
     admin: AdminUser = Depends(require_admin),
-) -> list[dict[str, object]]:
-    cutoff = datetime.now(UTC) - timedelta(days=365)
-
-    businesses = db.scalars(
-        select(Business)
-        .where(
-            Business.is_active.is_(True),
-            (
-                (Business.verification_status != "verified")
-                | (Business.last_verified_at.is_(None))
-                | (Business.last_verified_at < cutoff)
-            ),
+) -> dict[str, int]:
+    pending_verification = count_businesses_needing_verification(db)
+    new_suggestions = (
+        db.scalar(
+            select(func.count())
+            .select_from(BusinessSuggestion)
+            .where(BusinessSuggestion.status == "new")
         )
-        .order_by(
-            Business.last_verified_at.asc().nulls_first(),
-            Business.name.asc(),
+        or 0
+    )
+    pending_claims = (
+        db.scalar(
+            select(func.count())
+            .select_from(BusinessClaim)
+            .where(BusinessClaim.status == "pending")
         )
-    ).all()
+        or 0
+    )
+    return {
+        "pending_verification": pending_verification,
+        "new_suggestions": new_suggestions,
+        "pending_claims": pending_claims,
+    }
 
-    return [
-        {
-            "id": business.id,
-            "name": business.name,
-            "slug": business.slug,
-            "business_type": business.business_type,
-            "verification_status": business.verification_status,
-            "last_verified_at": business.last_verified_at,
-            "website_url": business.website_url,
-            "phone": business.phone,
-            "source_url": business.source_url,
-        }
-        for business in businesses
-    ]
+
+@router.get("/businesses/needs-verification")
+def list_businesses_needing_verification_endpoint(
+    db: DbSession,
+    admin: AdminUser = Depends(require_admin),
+    q: str | None = Query(default=None, min_length=1, max_length=100),
+    county: str | None = None,
+    business_type: str | None = Query(
+        default=None,
+        pattern="^(collector|aggregator|recycler|upcycler|mixed)$",
+    ),
+    verification_status: str | None = Query(
+        default=None, pattern="^(verified|unverified|needs_review)$"
+    ),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=50),
+) -> dict[str, object]:
+    try:
+        businesses, total = list_businesses_needing_verification(
+            db,
+            q=q,
+            county=county,
+            business_type=business_type,
+            verification_status=verification_status,
+            page=page,
+            page_size=page_size,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    items = [serialize_business_summary(business) for business in businesses]
+    return paginated_response(
+        items,
+        page=page,
+        page_size=page_size,
+        total=total,
+    )
+
+
+@router.get("/businesses/{business_id}")
+def get_business_for_review(
+    business_id: int,
+    db: DbSession,
+    admin: AdminUser = Depends(require_admin),
+) -> dict[str, object]:
+    business = get_admin_business(db, business_id)
+    if business is None:
+        raise HTTPException(status_code=404, detail="Business not found")
+    return serialize_business_detail(business)
+
+
+@router.patch("/businesses/{business_id}/services")
+def update_business_services(
+    business_id: int,
+    body: UpdateBusinessServicesRequest,
+    db: DbSession,
+    admin: AdminUser = Depends(require_admin),
+) -> dict[str, str]:
+    business = db.get(Business, business_id)
+    if business is None:
+        raise HTTPException(status_code=404, detail="Business not found")
+
+    try:
+        dropoff = validate_service_availability(
+            body.accepts_public_dropoff, field="accepts_public_dropoff"
+        )
+        pickup = validate_service_availability(
+            body.offers_pickup, field="offers_pickup"
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    before = {
+        "accepts_public_dropoff": business.accepts_public_dropoff,
+        "offers_pickup": business.offers_pickup,
+    }
+    after = {
+        "accepts_public_dropoff": dropoff,
+        "offers_pickup": pickup,
+    }
+
+    if before == after:
+        return {"status": "unchanged"}
+
+    business.accepts_public_dropoff = dropoff
+    business.offers_pickup = pickup
+
+    record_audit(
+        db,
+        admin_id=admin.id,
+        action="update_business_services",
+        entity="business",
+        entity_id=business.id,
+        before=before,
+        after=after,
+    )
+    db.commit()
+    return {"status": "updated"}
+
+
+@router.patch("/businesses/{business_id}/types")
+def update_business_types_endpoint(
+    business_id: int,
+    body: UpdateBusinessTypesRequest,
+    db: DbSession,
+    admin: AdminUser = Depends(require_admin),
+) -> dict[str, str]:
+    business = db.get(Business, business_id)
+    if business is None:
+        raise HTTPException(status_code=404, detail="Business not found")
+
+    try:
+        validated = validate_business_types(body.business_types)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    before = {
+        "business_types": [link.business_type for link in business.business_type_links]
+    }
+    replace_business_types(db, business, validated)
+    after = {"business_types": validated}
+
+    record_audit(
+        db,
+        admin_id=admin.id,
+        action="update_business_types",
+        entity="business",
+        entity_id=business.id,
+        before=before,
+        after=after,
+    )
+    db.commit()
+    return {"status": "updated"}
 
 
 @router.post("/businesses/{business_id}/verify")
@@ -222,6 +371,12 @@ def verify_business(
 
     all_confirmed = all(answer == "confirmed" for answer in checklist.values())
     outcome = "verified" if all_confirmed else "needs_review"
+
+    if all_confirmed and business_is_currently_verified(business):
+        raise HTTPException(
+            status_code=409,
+            detail="Business is already verified.",
+        )
 
     now = datetime.now(UTC)
     before = {
@@ -295,11 +450,20 @@ def publish_suggestion(
             detail="A business with this slug already exists.",
         )
 
-    if body.business_type not in {"recycler", "upcycler", "collector", "mixed"}:
-        raise HTTPException(status_code=422, detail="Invalid business type.")
+    try:
+        validated_types = validate_business_types(body.business_types)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
-    if body.accepts_public_dropoff not in {"yes", "no", "unknown"}:
-        raise HTTPException(status_code=422, detail="Invalid drop-off value.")
+    try:
+        dropoff = validate_service_availability(
+            body.accepts_public_dropoff, field="accepts_public_dropoff"
+        )
+        pickup = validate_service_availability(
+            body.offers_pickup, field="offers_pickup"
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     website_url = None
     image_url = None
@@ -334,8 +498,9 @@ def publish_suggestion(
     business = Business(
         name=suggestion.name,
         slug=slug,
-        business_type=body.business_type,
-        accepts_public_dropoff=body.accepts_public_dropoff,
+        business_type=None,
+        accepts_public_dropoff=dropoff,
+        offers_pickup=pickup,
         description=body.description.strip(),
         website_url=website_url,
         phone=(body.phone or suggestion.phone or "").strip() or None,
@@ -350,6 +515,7 @@ def publish_suggestion(
     try:
         db.add(business)
         db.flush()
+        replace_business_types(db, business, validated_types)
 
         db.add(
             Location(

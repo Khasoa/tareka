@@ -65,22 +65,20 @@ export default async function InsightPage({ params }: InsightPageProps) {
     <>
       <Header />
 
-      <main className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-8 sm:py-16">
-        <Link
-          href="/insights"
-          className="text-sm font-medium text-[var(--color-muted)] transition-colors hover:text-[var(--color-ink)]"
-        >
-          ← All insights
+      <main className="mx-auto w-full max-w-[var(--content-max-width)] px-5 py-10 sm:px-8 sm:py-14 lg:px-12">
+        <Link href="/insights" className="link-row text-sm font-medium">
+          <span className="link-arrow" aria-hidden="true">
+            ←
+          </span>
+          <span className="link-accent">All insights</span>
         </Link>
 
-        <header className="mt-7 border-b border-[var(--color-border-strong)] pb-8">
-          <p className="kicker">
+        <header className="mt-8 max-w-2xl border-b border-[var(--color-border)] pb-8">
+          <p className="font-meta text-[11px] text-[var(--color-muted)]">
             {frontmatter.category}
           </p>
 
-          <h1 className="page-heading mt-3 leading-tight">
-            {frontmatter.title}
-          </h1>
+          <h1 className="page-heading mt-4">{frontmatter.title}</h1>
 
           <p className="mt-4 text-base leading-7 text-[var(--color-muted)]">
             {frontmatter.excerpt}
@@ -94,7 +92,7 @@ export default async function InsightPage({ params }: InsightPageProps) {
         </header>
 
         {frontmatter.cover_image && (
-          <figure className="mt-8">
+          <figure className="mt-8 max-w-3xl">
             <Image
               src={frontmatter.cover_image}
               alt={frontmatter.image_alt ?? ""}
@@ -102,12 +100,12 @@ export default async function InsightPage({ params }: InsightPageProps) {
               height={675}
               priority
               sizes="(max-width: 768px) 100vw, 768px"
-              className="aspect-[16/9] w-full rounded-[var(--radius-control)] border border-[var(--color-border-strong)] object-cover"
+              className="aspect-[16/9] w-full object-cover"
             />
           </figure>
         )}
 
-        <article className="prose mt-8 max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-[var(--color-heading)] prose-p:leading-7 prose-p:text-[var(--color-body)] prose-a:text-[var(--color-body)] prose-a:decoration-[var(--color-accent)] prose-a:decoration-2 prose-a:underline-offset-4 prose-strong:text-[var(--color-heading)] prose-li:leading-7">
+        <article className="prose mt-8 max-w-2xl prose-headings:font-medium prose-headings:tracking-tight prose-headings:text-[var(--color-heading)] prose-p:leading-7 prose-p:text-[var(--color-body)] prose-a:text-[var(--color-body)] prose-a:decoration-[var(--color-accent)] prose-a:decoration-2 prose-a:underline-offset-4 prose-strong:text-[var(--color-heading)] prose-li:leading-7">
           <MDXRemote
             source={content}
             components={{
@@ -116,12 +114,12 @@ export default async function InsightPage({ params }: InsightPageProps) {
           />
         </article>
 
-        <div className="mt-12 border-t border-[var(--color-border-strong)] pt-6">
-          <Link
-            href="/#directory"
-            className="link-accent text-sm font-medium"
-          >
-            Find a recovery business →
+        <div className="mt-12 max-w-2xl border-t border-[var(--color-border)] pt-6">
+          <Link href="/#directory" className="link-row text-sm font-medium">
+            <span className="link-accent">Find a recovery business</span>
+            <span className="link-arrow" aria-hidden="true">
+              →
+            </span>
           </Link>
         </div>
       </main>

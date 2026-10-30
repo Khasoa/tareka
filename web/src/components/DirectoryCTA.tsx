@@ -15,7 +15,9 @@ export default function DirectoryCTA({
     <div className="my-8">
       <Link href={`/?${query}`} className="btn-primary">
         {label}
-        <span aria-hidden="true">→</span>
+        <span className="link-arrow" aria-hidden="true">
+          →
+        </span>
       </Link>
     </div>
   );

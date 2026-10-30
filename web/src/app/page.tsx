@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Header from "@/components/Header";
-import Hero from "@/components/Hero";
+import MaterialsExhibition from "@/components/MaterialsExhibition";
+import DirectoryIntro from "@/components/DirectoryIntro";
 import DirectoryHome from "@/components/DirectoryHome";
 import {
   getBusinesses,
@@ -8,6 +9,7 @@ import {
   getMaterials,
   type BusinessListResponse,
 } from "@/lib/api";
+import { businessTypeQueryForApi } from "@/lib/directorySearchParams";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +45,8 @@ export default async function HomePage({
     const query = first(sp.q).trim();
     const county = first(sp.county).trim();
     const dropoff = first(sp.accepts_public_dropoff).trim();
-    const businessType = first(sp.business_type).trim();
+    const pickup = first(sp.offers_pickup).trim();
+    const businessType = businessTypeQueryForApi(first(sp.business_type));
     const materialSlug = first(sp.material).trim();
     const materialId = first(sp.material_id).trim();
 
@@ -67,11 +70,12 @@ export default async function HomePage({
       query,
       county,
       dropoff,
+      pickup,
       businessType,
       selectedMaterial?.slug ?? "",
     ].join("|");
 
-    if (query || county || dropoff || businessType || selectedMaterial) {
+    if (query || county || dropoff || pickup || businessType || selectedMaterial) {
       const filtered = new URLSearchParams({
         page: "1",
         page_size: "12",
@@ -79,6 +83,7 @@ export default async function HomePage({
       if (query) filtered.set("q", query);
       if (county) filtered.set("county", county);
       if (dropoff) filtered.set("accepts_public_dropoff", dropoff);
+      if (pickup) filtered.set("offers_pickup", pickup);
       if (businessType) filtered.set("business_type", businessType);
       if (selectedMaterial) {
         filtered.set("material_id", String(selectedMaterial.id));
@@ -93,16 +98,24 @@ export default async function HomePage({
   return (
     <>
       <Header />
-      <Hero total={directoryTotal} countiesCount={countiesCount} />
-      <Suspense fallback={null}>
-        <DirectoryHome
-          key={listKey}
-          initialBusinesses={businessData.items}
-          initialTotal={businessData.total}
-          counties={counties}
-          materials={materials}
-        />
-      </Suspense>
+      <div className="directory-page">
+        <section className="directory-hero">
+          <DirectoryIntro total={directoryTotal} countiesCount={countiesCount} />
+          <Suspense fallback={null}>
+            <MaterialsExhibition materials={materials} />
+          </Suspense>
+        </section>
+
+        <Suspense fallback={null}>
+          <DirectoryHome
+            key={listKey}
+            initialBusinesses={businessData.items}
+            initialTotal={businessData.total}
+            counties={counties}
+            materials={materials}
+          />
+        </Suspense>
+      </div>
     </>
   );
 }
