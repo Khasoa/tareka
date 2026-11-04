@@ -306,11 +306,11 @@ export default function TermsPage() {
         </div>
 
         <div className="mt-12 border-t border-[var(--color-border-strong)] pt-6">
-          <Link href="/" className="link-row text-sm font-medium">
+          <Link href="/#directory" className="link-row text-sm font-medium">
             <span className="link-arrow" aria-hidden="true">
               ←
             </span>
-            <span className="link-accent">Back to tareka</span>
+            <span className="link-row-ink">Back to directory</span>
           </Link>
         </div>
       </main>

@@ -42,7 +42,7 @@ export default function Header() {
 
         <DirectoryAnchor
           onNavigate={closeMenu}
-          className="btn-primary justify-self-end whitespace-nowrap px-3 text-xs sm:px-5 sm:text-sm"
+          className="btn-primary justify-self-end whitespace-nowrap"
         >
           Find a place
         </DirectoryAnchor>
@@ -71,10 +71,10 @@ export default function Header() {
                 <Link
                   href="/how-it-works"
                   onClick={closeMenu}
-                  className="link-row text-sm"
+                  className="text-sm text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)]"
                 >
-                  <span className="link-accent">How it works</span>
-                  <span className="link-arrow" aria-hidden="true">
+                  How it works
+                  <span className="ml-1" aria-hidden="true">
                     →
                   </span>
                 </Link>
@@ -82,10 +82,10 @@ export default function Header() {
                 <Link
                   href="/suggest"
                   onClick={closeMenu}
-                  className="link-row text-sm"
+                  className="text-sm text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)]"
                 >
-                  <span className="link-accent">Suggest a business</span>
-                  <span className="link-arrow" aria-hidden="true">
+                  Suggest a business
+                  <span className="ml-1" aria-hidden="true">
                     →
                   </span>
                 </Link>
@@ -102,10 +102,10 @@ export default function Header() {
                   <Link
                     href="/"
                     onClick={closeMenu}
-                    className="link-row"
+                    className="text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)]"
                   >
-                    <span className="link-accent">Directory</span>
-                    <span className="link-arrow" aria-hidden="true">
+                    Directory
+                    <span className="ml-1" aria-hidden="true">
                       →
                     </span>
                   </Link>
@@ -114,10 +114,10 @@ export default function Header() {
                   <Link
                     href="/insights"
                     onClick={closeMenu}
-                    className="link-row"
+                    className="text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)]"
                   >
-                    <span className="link-accent">Insights</span>
-                    <span className="link-arrow" aria-hidden="true">
+                    Insights
+                    <span className="ml-1" aria-hidden="true">
                       →
                     </span>
                   </Link>
@@ -136,13 +136,13 @@ export default function Header() {
                     href="https://www.linkedin.com/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="transition-colors hover:text-[var(--color-muted)]"
+                    className="inline-flex items-center transition-colors hover:text-[var(--color-muted)]"
                   >
                     LinkedIn <span aria-hidden="true">↗</span>
                   </a>
                 </li>
                 <li>
-                  <ContactLink showExternalIcon />
+                  <ContactLink menuLink showExternalIcon />
                 </li>
               </ul>
             </div>

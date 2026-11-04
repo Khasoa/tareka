@@ -14,15 +14,16 @@ export default function FollowBottle() {
       className="hero-follow"
       aria-label="Follow me to the recovery directory"
     >
-      <svg
-        className="follow-bottle"
-        viewBox="-2 -2 276 76"
-        focusable="false"
-        aria-hidden="true"
-      >
-        <g className="follow-hover">
-          <g className="follow-wobble">
-            <g className="follow-fall">
+      <span className="follow-bottle-slot">
+        <svg
+          className="follow-bottle"
+          viewBox="-2 -2 276 76"
+          focusable="false"
+          aria-hidden="true"
+        >
+          <g className="follow-hover">
+            <g className="follow-wobble">
+              <g className="follow-fall">
               <path className="ps-fill" d={BOTTLE} />
               <path className="ps-line" d="M30 0 V64 M62 0 V64" />
               <path
@@ -39,10 +40,11 @@ export default function FollowBottle() {
                 height="34"
                 rx="3"
               />
+              </g>
             </g>
           </g>
-        </g>
-      </svg>
+        </svg>
+      </span>
 
       <span className="follow-cta">
         <span className="follow-text" aria-hidden="true">

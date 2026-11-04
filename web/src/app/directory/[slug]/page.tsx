@@ -101,7 +101,7 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
       <Header />
 
       <main className="business-detail-page page-shell py-12 sm:py-16">
-        <BackToDirectory bodyInk />
+        <BackToDirectory />
 
         <article
           className={`business-detail mt-4 sm:mt-5${hasAbout ? " business-detail--has-about" : " business-detail--no-about"}`}
