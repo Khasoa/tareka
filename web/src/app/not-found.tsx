@@ -8,8 +8,14 @@ export default function NotFound() {
       <p className="mt-4 text-sm leading-7 text-[var(--color-muted)]">
         This page does not exist or is no longer published.
       </p>
-      <LinkWithArrow href="/" className="mt-8 text-sm font-medium">
-        Back to tareka
+      <LinkWithArrow
+        href="/#directory"
+        arrow="←"
+        arrowPosition="before"
+        className="mt-8 text-sm font-medium"
+        underlineClassName="link-accent"
+      >
+        Back to directory
       </LinkWithArrow>
     </main>
   );

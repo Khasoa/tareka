@@ -46,7 +46,7 @@ export default function Footer() {
             </p>
           </div>
 
-          <div className="footer-links order-2 flex flex-col gap-3 sm:order-none sm:items-end">
+          <div className="footer-links order-2 flex flex-col gap-4 sm:order-none sm:items-end">
             <nav
               aria-label="Directory"
               className="footer-nav-directory order-2 text-sm sm:order-none sm:text-right"
@@ -76,17 +76,17 @@ export default function Footer() {
             >
               <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 sm:justify-end">
                 <li>
-                  <ContactLink footerTouch showExternalIcon />
-                </li>
-                <li>
                   <a
                     href="https://www.linkedin.com/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-11 items-center text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)]"
+                    className="inline-flex items-center text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)]"
                   >
                     LinkedIn <span aria-hidden="true">↗</span>
                   </a>
+                </li>
+                <li>
+                  <ContactLink footerTouch showExternalIcon />
                 </li>
               </ul>
             </nav>
@@ -109,7 +109,7 @@ export default function Footer() {
               </Link>
             </nav>
 
-            <DirectoryAnchor className="footer-cta btn-primary order-4 mt-1 w-fit sm:order-none">
+            <DirectoryAnchor className="footer-cta btn-primary order-4 w-fit sm:order-none">
               Find a place
             </DirectoryAnchor>
           </div>

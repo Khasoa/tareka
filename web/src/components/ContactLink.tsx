@@ -26,6 +26,8 @@ type Props = {
   className?: string;
   showExternalIcon?: boolean;
   footerTouch?: boolean;
+  /** Header menu: keep "Contact" label on touch; tap to copy/reveal. */
+  menuLink?: boolean;
 };
 
 function fallbackCopy(value: string) {
@@ -64,6 +66,7 @@ export default function ContactLink({
   className = "",
   showExternalIcon = false,
   footerTouch = false,
+  menuLink = false,
 }: Props) {
   const [status, setStatus] = useState<CopyStatus>("idle");
   const [revealed, setRevealed] = useState(false);
@@ -131,8 +134,10 @@ export default function ContactLink({
   }
 
   const footerClass = footerTouch ? "contact-link--footer" : "";
-  const showEmailInDom = !footerTouch || (footerTouch && !coarsePointer);
-  const footerTouchMode = footerTouch && coarsePointer;
+  const menuClass = menuLink ? "contact-link--menu" : "";
+  const touchReveal = footerTouch || menuLink;
+  const showEmailInDom = !touchReveal || (touchReveal && !coarsePointer);
+  const footerTouchMode = touchReveal && coarsePointer;
 
   if (footerTouchMode && revealed) {
     return (
@@ -174,7 +179,7 @@ export default function ContactLink({
         }}
         onKeyDown={(event) => {
           if (
-            footerTouch &&
+            touchReveal &&
             !coarsePointer &&
             (event.key === "Enter" || event.key === " ")
           ) {
@@ -183,7 +188,7 @@ export default function ContactLink({
           }
         }}
         onFocus={
-          footerTouch && !coarsePointer
+          touchReveal && !coarsePointer
             ? () => {
                 setRevealed(true);
                 setLiveMessage("Email address shown");
@@ -193,8 +198,12 @@ export default function ContactLink({
         aria-label={
           footerTouchMode ? "Show contact email" : `Copy email address ${EMAIL}`
         }
-        aria-expanded={footerTouch ? revealed : undefined}
-        className={`contact-link contact-link--tap ${footerClass} inline-flex min-h-11 min-w-11 items-center justify-center text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]`}
+        aria-expanded={touchReveal ? revealed : undefined}
+        className={`contact-link contact-link--tap ${footerClass} ${menuClass} inline-flex items-center text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] ${
+          menuLink
+            ? "min-h-0 min-w-0 justify-start p-0"
+            : "min-h-11 min-w-11 justify-center"
+        }`.trim()}
       >
         <span className="contact-link__label">
           Contact
@@ -214,21 +223,21 @@ export default function ContactLink({
         {liveMessage}
       </span>
 
-      {!footerTouch && status === "failed" ? (
+      {!footerTouch && !menuLink && status === "failed" ? (
         <span className="contact-copy__status contact-copy__status--failed">
           Couldn&apos;t copy
         </span>
       ) : null}
 
       {status === "copied" &&
-      !(footerTouch && coarsePointer && revealed) ? (
+      !(touchReveal && coarsePointer && revealed) ? (
         <span
           className={`contact-copy__status${
-            footerTouch && coarsePointer ? " contact-copy__status--inline" : ""
+            touchReveal && coarsePointer ? " contact-copy__status--inline" : ""
           }`}
           aria-hidden={footerTouch ? undefined : true}
         >
-          {footerTouch ? "Copied" : "Copied!"}
+          {touchReveal ? "Copied" : "Copied!"}
         </span>
       ) : null}
     </span>

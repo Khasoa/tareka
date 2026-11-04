@@ -192,8 +192,8 @@ export default function InsightsIndex({ insights: insightsProp }: Props) {
       <div className="mt-16 border-t border-[var(--color-border)] pt-6">
         <LinkWithArrow
           href="/#directory"
-          className="insights-inline-link text-sm font-medium"
-          underlineClassName="link-text-underline"
+          className="text-sm font-medium"
+          underlineClassName="link-row-ink"
         >
           Explore the recovery directory
         </LinkWithArrow>

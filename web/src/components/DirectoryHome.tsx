@@ -373,23 +373,22 @@ export default function DirectoryHome({
       {!loading && businesses.length === 0 && !error && (
         <div className="directory-empty border-b border-[var(--color-border)] py-6 sm:py-8">
           <h3 className="text-xl font-medium">No matches just yet.</h3>
-          <p className="mt-2 text-sm text-[var(--color-muted)]">
-            Try another material or broaden your filters.
+          <p className="mt-2 max-w-lg text-sm leading-relaxed text-[var(--color-muted)]">
+            Try another material, broaden your filters, or{" "}
+            <Link href="/suggest" className="link-row font-medium">
+              <span className="link-accent">suggest a business</span>
+              <span className="link-arrow" aria-hidden="true">
+                →
+              </span>
+            </Link>
+            .
           </p>
-          <Link href="/suggest" className="link-row mt-3 text-sm font-medium">
-            <span className="link-accent">
-              Know a business that handles this? Suggest one
-            </span>
-            <span className="link-arrow" aria-hidden="true">
-              →
-            </span>
-          </Link>
           <button
             type="button"
             onClick={resetFilters}
-            className="link-accent mt-4 block text-sm"
+            className="link-row text-sm font-medium"
           >
-            Show all businesses
+            <span className="link-row-ink">Show all businesses</span>
           </button>
         </div>
       )}
