@@ -118,72 +118,132 @@ export type VerifyBusinessPayload = {
   notes: string;
 };
 
+export class AdminRequestError extends Error {
+  status: number;
+  detail: unknown;
+
+  constructor(message: string, status: number, detail: unknown) {
+    super(message);
+    this.name = "AdminRequestError";
+    this.status = status;
+    this.detail = detail;
+  }
+}
+
+export function isAdminUnauthorizedError(error: unknown): boolean {
+  return error instanceof AdminRequestError && error.status === 401;
+}
+
+export function isAdminVersionConflict(error: unknown): error is AdminRequestError {
+  return (
+    error instanceof AdminRequestError &&
+    error.status === 409 &&
+    typeof error.detail === "object" &&
+    error.detail !== null &&
+    "current_version" in error.detail
+  );
+}
+
+import { humanizeDocumentSaveError } from "@/lib/insights/editor/documentSaveErrors";
+
+export function formatAdminErrorDetail(detail: unknown, status: number): string {
+  if (typeof detail === "string") {
+    if (status === 422) {
+      return humanizeDocumentSaveError(detail);
+    }
+    return detail;
+  }
+  if (Array.isArray(detail)) {
+    return detail
+      .map((item) => {
+        if (typeof item === "object" && item && "msg" in item) {
+          return String(item.msg);
+        }
+        return "Validation error";
+      })
+      .join(" ");
+  }
+  if (typeof detail === "object" && detail !== null && "message" in detail) {
+    return String((detail as { message: unknown }).message);
+  }
+  return `Request failed (${status})`;
+}
+
 export async function adminRequest<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const {
-    redirectOnUnauthorized = true,
-    ...init
-  } = options;
+  const { redirectOnUnauthorized = true, ...init } = options;
 
   const headers = new Headers(init.headers);
 
-  if (
-    init.body &&
-    !headers.has("Content-Type")
-  ) {
-    headers.set(
-      "Content-Type",
-      "application/json",
-    );
+  const isFormData =
+    typeof FormData !== "undefined" && init.body instanceof FormData;
+
+  if (init.body && !isFormData && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(
-    `${API_URL}${path}`,
-    {
-      ...init,
-      credentials: "include",
-      cache: "no-store",
-      headers,
-    },
-  );
+  const response = await fetch(`${API_URL}${path}`, {
+    ...init,
+    credentials: "include",
+    cache: "no-store",
+    headers,
+  });
 
   if (
     response.status === 401 &&
     redirectOnUnauthorized &&
     typeof window !== "undefined" &&
-    !window.location.pathname.startsWith(
-      "/admin/login",
-    )
+    !window.location.pathname.startsWith("/admin/login")
   ) {
     window.location.assign("/admin/login");
-
-    throw new Error(
+    throw new AdminRequestError(
       "Your session has expired. Please sign in again.",
+      401,
+      null,
     );
   }
 
-  const contentType =
-    response.headers.get("content-type") ?? "";
+  const text = await response.text();
+  let data: unknown = null;
 
-  const data = contentType.includes(
-    "application/json",
-  )
-    ? await response.json()
-    : null;
+  if (text.trim()) {
+    const contentType = response.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        if (response.ok) {
+          throw new AdminRequestError(
+            "The server returned a response we could not read. Try again.",
+            response.status,
+            null,
+          );
+        }
+      }
+    }
+  }
 
   if (!response.ok) {
     const detail =
-      data &&
-      typeof data === "object" &&
-      "detail" in data &&
-      typeof data.detail === "string"
+      data && typeof data === "object" && "detail" in data
         ? data.detail
-        : `Request failed (${response.status})`;
+        : data;
+    throw new AdminRequestError(
+      formatAdminErrorDetail(detail, response.status),
+      response.status,
+      detail,
+    );
+  }
 
-    throw new Error(detail);
+  if (response.status === 204) {
+    return undefined as T;
   }
 
   return data as T;
+}
+
+export function getAdminApiUrl(): string {
+  return API_URL;
 }

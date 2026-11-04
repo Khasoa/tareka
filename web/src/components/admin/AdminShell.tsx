@@ -20,6 +20,11 @@ const NAV_ITEMS = [
     label: "Claims",
     match: (path: string) => path.startsWith("/admin/claims"),
   },
+  {
+    href: "/admin/insights",
+    label: "Insights",
+    match: (path: string) => path.startsWith("/admin/insights"),
+  },
 ] as const;
 
 type AdminShellProps = {
@@ -52,9 +57,9 @@ export function AdminShell({
               key={item.href}
               href={item.href}
               aria-current={active ? "page" : undefined}
-              className={`rounded-[var(--radius-control)] px-3 py-1.5 text-sm font-semibold transition ${
+              className={`admin-nav-link rounded-[var(--radius-control)] px-3 py-1.5 text-sm font-semibold transition ${
                 active
-                  ? "bg-[var(--color-ink)] text-[var(--color-inverse)]"
+                  ? "admin-nav-link--active"
                   : "border border-[var(--color-border-strong)] bg-[var(--color-surface)] text-[var(--color-heading)] hover:bg-[var(--color-accent-soft)]"
               }`}
             >

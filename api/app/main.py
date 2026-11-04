@@ -9,16 +9,33 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.requests import Request
 from starlette.responses import Response
 
+from app.core.browser_origin import validate_state_changing_origin
 from app.core.config import settings
 from app.core.database import engine
+from app.core.origins import trusted_browser_origins
 from app.core.rate_limit import limiter
 from app.modules.admin.router import router as admin_router
 from app.modules.claims.router import router as claims_router
 from app.modules.directory.reference_router import router as directory_router
 from app.modules.directory.router import router as business_router
+from app.modules.insights.admin_router import router as insights_admin_router
+from app.modules.insights.router import router as insights_router
 from app.modules.suggestions.router import router as suggestions_router
 
-app = FastAPI(title="Tareka API")
+_docs_enabled = settings.environment != "production"
+
+
+def api_documentation_enabled(environment: str) -> bool:
+    """Shared rule for disabling Swagger/ReDoc/OpenAPI in production."""
+    return environment != "production"
+
+
+app = FastAPI(
+    title="Tareka API",
+    docs_url="/docs" if _docs_enabled else None,
+    redoc_url="/redoc" if _docs_enabled else None,
+    openapi_url="/openapi.json" if _docs_enabled else None,
+)
 
 app.state.limiter = limiter
 
@@ -40,6 +57,14 @@ app.add_exception_handler(
 
 
 @app.middleware("http")
+async def enforce_browser_origin(
+    request: Request,
+    call_next: Callable,
+) -> Response:
+    return await validate_state_changing_origin(request, call_next)
+
+
+@app.middleware("http")
 async def add_security_headers(
     request: Request,
     call_next: Callable,
@@ -58,35 +83,19 @@ async def add_security_headers(
     return response
 
 
-def _allowed_origins() -> list[str]:
-    configured = [
-        origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()
-    ]
-    if settings.environment == "production":
-        origins = [settings.frontend_origin.strip(), *configured]
-    else:
-        origins = [
-            settings.frontend_origin.strip(),
-            *configured,
-            "http://localhost:3000",
-            "http://localhost:3010",
-            "http://127.0.0.1:3000",
-            "http://127.0.0.1:3010",
-        ]
-    return list(dict.fromkeys(origin for origin in origins if origin))
-
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_allowed_origins(),
+    allow_origins=trusted_browser_origins(settings),
     allow_credentials=True,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Accept"],
 )
 
 app.include_router(directory_router)
 app.include_router(business_router)
+app.include_router(insights_router)
 app.include_router(admin_router)
+app.include_router(insights_admin_router)
 app.include_router(suggestions_router)
 app.include_router(claims_router)
 

@@ -5,6 +5,8 @@ import DirectoryAnchor from "@/components/DirectoryAnchor";
 import Wordmark from "@/components/Wordmark";
 
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
     <footer className="footer-surface relative isolate overflow-x-hidden border-t border-[var(--color-border)] py-12 sm:py-14">
       <div
@@ -21,8 +23,8 @@ export default function Footer() {
       </div>
 
       <div className="page-shell relative">
-        <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
-          <div className="max-w-xs">
+        <div className="footer-layout flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
+          <div className="footer-brand order-1 max-w-xs sm:order-none">
             <CardLink
               href="/intro"
               direction="down"
@@ -37,15 +39,18 @@ export default function Footer() {
             </p>
 
             <p
-              className="mt-3 text-xs text-[var(--color-muted)]"
+              className="mt-3 hidden text-xs text-[var(--color-muted)] sm:block"
               suppressHydrationWarning
             >
-              © {new Date().getFullYear()} tareka — all rights reserved.
+              © {year} tareka — all rights reserved.
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 sm:items-end">
-            <nav aria-label="Directory" className="text-sm sm:text-right">
+          <div className="footer-links order-2 flex flex-col gap-3 sm:order-none sm:items-end">
+            <nav
+              aria-label="Directory"
+              className="footer-nav-directory order-2 text-sm sm:order-none sm:text-right"
+            >
               <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 sm:justify-end">
                 <li>
                   <Link href="/" className="link-accent text-[var(--color-ink)]">
@@ -65,17 +70,20 @@ export default function Footer() {
               </ul>
             </nav>
 
-            <nav aria-label="Connect" className="text-sm sm:text-right">
+            <nav
+              aria-label="Connect"
+              className="footer-nav-connect order-3 text-sm sm:order-none sm:text-right"
+            >
               <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 sm:justify-end">
                 <li>
-                  <ContactLink showExternalIcon />
+                  <ContactLink footerTouch showExternalIcon />
                 </li>
                 <li>
                   <a
                     href="https://www.linkedin.com/"
                     target="_blank"
-                    rel="noreferrer"
-                    className="text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)]"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-11 items-center text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)]"
                   >
                     LinkedIn <span aria-hidden="true">↗</span>
                   </a>
@@ -85,7 +93,7 @@ export default function Footer() {
 
             <nav
               aria-label="Legal"
-              className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-[var(--color-muted)] sm:justify-end"
+              className="footer-legal-desktop hidden flex-wrap items-center gap-x-5 gap-y-1 text-xs text-[var(--color-muted)] sm:flex sm:justify-end"
             >
               <Link
                 href="/privacy"
@@ -101,9 +109,30 @@ export default function Footer() {
               </Link>
             </nav>
 
-            <DirectoryAnchor className="btn-primary mt-1 w-fit">
+            <DirectoryAnchor className="footer-cta btn-primary order-4 mt-1 w-fit sm:order-none">
               Find a place
             </DirectoryAnchor>
+          </div>
+
+          <div className="footer-legal-mobile order-5 text-xs text-[var(--color-muted)] sm:hidden">
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <Link
+                href="/privacy"
+                className="transition-colors hover:text-[var(--color-ink)]"
+              >
+                Privacy
+              </Link>
+              <span aria-hidden="true">·</span>
+              <Link
+                href="/terms"
+                className="transition-colors hover:text-[var(--color-ink)]"
+              >
+                Terms
+              </Link>
+            </p>
+            <p className="mt-2" suppressHydrationWarning>
+              © {year} tareka
+            </p>
           </div>
         </div>
       </div>

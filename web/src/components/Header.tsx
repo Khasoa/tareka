@@ -29,7 +29,7 @@ export default function Header() {
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
-          className="flex size-9 items-center justify-center justify-self-center rounded-full text-xl font-light leading-none text-[var(--color-ink)] transition-colors hover:bg-[var(--color-accent-soft)]"
+          className="flex min-h-11 min-w-11 items-center justify-center justify-self-center rounded-full text-xl font-light leading-none text-[var(--color-ink)] transition-colors hover:bg-[var(--color-accent-soft)]"
         >
           <span
             className={`block transition-transform duration-200 ${
@@ -135,7 +135,7 @@ export default function Header() {
                   <a
                     href="https://www.linkedin.com/"
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="transition-colors hover:text-[var(--color-muted)]"
                   >
                     LinkedIn <span aria-hidden="true">↗</span>

@@ -77,7 +77,7 @@ cd api
 cp .env.example .env
 ```
 
-Edit `api/.env` with your local database connection and development settings. At minimum, configure the required `DATABASE_URL` and `SECRET_KEY`.
+Edit `api/.env` with your local database connection and development settings. At minimum, configure the required `DATABASE_URL`.
 
 Install the locked project dependencies:
 
@@ -179,7 +179,7 @@ See `web/README.md` and `api/README.md` for the component-specific instructions.
 ## Security
 
 - Never commit `.env` files, credentials, session secrets or database passwords.
-- Keep the production `SECRET_KEY` private and strong.
+- Keep production database credentials and Railway environment variables private.
 - Restrict CORS to the actual application origins.
 - Protect admin functionality with backend authentication and authorization. `robots.txt` is not a security control.
 - Back up production data before performing data imports or risky schema changes.

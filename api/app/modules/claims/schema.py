@@ -8,4 +8,4 @@ class ClaimCreate(BaseModel):
     correction_note: str | None = Field(default=None, max_length=2000)
     content_use_consent: bool = False
     image_consent: bool = False
-    honeypot: str = Field(default="", max_length=0)
+    honeypot: str = Field(default="", max_length=64)

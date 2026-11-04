@@ -12,6 +12,8 @@ export type InsightFrontmatter = {
   cover_image?: string;
   image_alt?: string;
   published_at: string;
+  seo_title?: string;
+  meta_description?: string;
 };
 
 export type InsightSummary = InsightFrontmatter;
@@ -38,6 +40,23 @@ function requiredString(
     );
   }
 
+  return value.trim();
+}
+
+function optionalString(
+  data: Record<string, unknown>,
+  field: string,
+  fileName: string,
+): string | undefined {
+  const value = data[field];
+  if (value === undefined) {
+    return undefined;
+  }
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error(
+      `Invalid insight "${fileName}": "${field}" must be a non-empty string when set.`,
+    );
+  }
   return value.trim();
 }
 
@@ -105,6 +124,9 @@ function parseFrontmatter(
     );
   }
 
+  const seoTitle = optionalString(data, "seo_title", fileName);
+  const metaDescription = optionalString(data, "meta_description", fileName);
+
   return {
     title,
     slug,
@@ -113,6 +135,8 @@ function parseFrontmatter(
     published_at: publishedAt,
     ...(coverImage ? { cover_image: coverImage } : {}),
     ...(imageAlt !== undefined ? { image_alt: imageAlt.trim() } : {}),
+    ...(seoTitle ? { seo_title: seoTitle } : {}),
+    ...(metaDescription ? { meta_description: metaDescription } : {}),
   };
 }
 

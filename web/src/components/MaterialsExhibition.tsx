@@ -11,14 +11,14 @@ type MaterialCard = {
 };
 
 const MATERIALS: MaterialCard[] = [
-  { slug: "", label: "All materials", image: "/images/materials/all.png", description: "Every material currently in the directory" },
-  { slug: "glass", label: "Glass", image: "/images/materials/glass.png", description: "Bottles, jars and broken glass" },
-  { slug: "plastic", label: "Plastic", image: "/images/materials/plastic.png", description: "Bottles, packaging and other plastics" },
-  { slug: "organic-waste", label: "Organic", image: "/images/materials/organic.png", description: "Food scraps, garden waste and organics" },
-  { slug: "textiles", label: "Textiles", image: "/images/materials/textiles.png", description: "Clothing, fabric and other fibres" },
-  { slug: "paper", label: "Paper", image: "/images/materials/paper.png", description: "Paper, card and cardboard packaging" },
-  { slug: "metal", label: "Metal", image: "/images/materials/metal.png", description: "Cans, scrap and other metals" },
-  { slug: "e-waste", label: "E-waste", image: "/images/materials/e-waste.png", description: "Phones, appliances and electronics" },
+  { slug: "", label: "All materials", image: "/images/materials/all.webp", description: "Every material currently in the directory" },
+  { slug: "glass", label: "Glass", image: "/images/materials/glass.webp", description: "Bottles, jars and broken glass" },
+  { slug: "plastic", label: "Plastic", image: "/images/materials/plastic.webp", description: "Bottles, packaging and other plastics" },
+  { slug: "organic-waste", label: "Organic", image: "/images/materials/organic.webp", description: "Food scraps, garden waste and organics" },
+  { slug: "textiles", label: "Textiles", image: "/images/materials/textiles.webp", description: "Clothing, fabric and other fibres" },
+  { slug: "paper", label: "Paper", image: "/images/materials/paper.webp", description: "Paper, card and cardboard packaging" },
+  { slug: "metal", label: "Metal", image: "/images/materials/metal.webp", description: "Cans, scrap and other metals" },
+  { slug: "e-waste", label: "E-waste", image: "/images/materials/e-waste.webp", description: "Phones, appliances and electronics" },
 ];
 
 const COUNT = MATERIALS.length;

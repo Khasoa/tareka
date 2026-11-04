@@ -2,10 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 
-import type { InsightSummary } from "@/lib/insights";
+import { CategoryLabel } from "@/components/insights/CategoryLabel";
+import { LinkWithArrow } from "@/components/LinkWithArrow";
+import { useMemo, useState } from "react";
+
+import { devInsightsGridPreview } from "@/lib/insights/devGridPreview";
+import { insightCategoryDotColor } from "@/lib/insightCategoryTokens";
+import type { PublicInsightSummary } from "@/lib/publicInsightsApi";
 
 function formatPublishedDate(value: string) {
   return new Intl.DateTimeFormat("en-KE", {
@@ -14,42 +19,67 @@ function formatPublishedDate(value: string) {
   }).format(new Date(`${value}T00:00:00.000Z`));
 }
 
+const CATEGORY_DISPLAY_ORDER = [
+  "Foundations",
+  "Material Explorations",
+  "Recovery in Practice",
+] as const;
+
+function sortCategories(names: string[]) {
+  return [...names].sort((a, b) => {
+    const indexA = CATEGORY_DISPLAY_ORDER.indexOf(
+      a as (typeof CATEGORY_DISPLAY_ORDER)[number],
+    );
+    const indexB = CATEGORY_DISPLAY_ORDER.indexOf(
+      b as (typeof CATEGORY_DISPLAY_ORDER)[number],
+    );
+    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    return indexA - indexB;
+  });
+}
+
+function compareInsights(a: PublicInsightSummary, b: PublicInsightSummary) {
+  const byDate = b.published_at.localeCompare(a.published_at);
+  if (byDate !== 0) return byDate;
+  return b.slug.localeCompare(a.slug);
+}
+
 type Props = {
-  insights: InsightSummary[];
+  insights: PublicInsightSummary[];
 };
 
-export default function InsightsIndex({ insights }: Props) {
-  const router = useRouter();
-  const pathname = usePathname();
+export default function InsightsIndex({ insights: insightsProp }: Props) {
   const searchParams = useSearchParams();
-  const activeCategory = (searchParams.get("category") ?? "").trim();
+  const devGridMode = searchParams.get("devInsightsGrid");
+  const insights = useMemo(() => {
+    const preview = devInsightsGridPreview(devGridMode, insightsProp);
+    return preview ?? insightsProp;
+  }, [devGridMode, insightsProp]);
+
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const categories = useMemo(() => {
-    const unique = [...new Set(insights.map((item) => item.category))].sort();
+    const unique = sortCategories([...new Set(insights.map((item) => item.category))]);
     return unique;
   }, [insights]);
 
   const filtered = useMemo(() => {
-    if (!activeCategory) return insights;
-    return insights.filter((item) => item.category === activeCategory);
+    const list = activeCategory
+      ? insights.filter((item) => item.category === activeCategory)
+      : insights;
+    return [...list].sort(compareInsights);
   }, [activeCategory, insights]);
 
-  function selectCategory(category: string | null) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (category) {
-      params.set("category", category);
-    } else {
-      params.delete("category");
-    }
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-  }
-
-  const [featured, ...rest] = filtered;
+  const newestSlug = useMemo(() => {
+    if (insights.length === 0) return null;
+    return [...insights].sort(compareInsights)[0]?.slug ?? null;
+  }, [insights]);
 
   return (
     <main className="mx-auto w-full max-w-[var(--content-max-width)] px-5 py-10 sm:px-8 sm:py-14 lg:px-12">
-      <header className="grid gap-6 border-b border-[var(--color-border)] pb-10 sm:gap-8 lg:grid-cols-12 lg:items-end lg:pb-12">
+      <header className="grid gap-6 pb-2 sm:gap-8 lg:grid-cols-12 lg:items-end lg:pb-4">
         <div className="order-2 max-w-md lg:order-1 lg:col-span-5">
           <p className="kicker">Learn about recovery</p>
           <p className="mt-4 text-sm leading-relaxed text-[var(--color-muted)] sm:text-[0.95rem]">
@@ -65,35 +95,47 @@ export default function InsightsIndex({ insights }: Props) {
       </header>
 
       {insights.length > 0 ? (
-        <div className="mt-10 grid gap-10 lg:mt-14 lg:grid-cols-12 lg:gap-x-12 lg:gap-y-8">
+        <div className="insights-layout insights-layout--below-header">
           {categories.length > 0 ? (
-            <aside className="lg:col-span-3">
+            <aside className="insights-sidebar">
               <p className="text-sm font-medium text-[var(--color-ink)]">
                 Categories
               </p>
               <div
-                className="mt-3 flex flex-wrap gap-x-5 gap-y-2 border-t border-[var(--color-border)] pt-3 lg:flex-col lg:gap-y-2.5"
+                className="insights-sidebar__list"
                 role="toolbar"
                 aria-label="Filter by category"
               >
                 <button
                   type="button"
-                  onClick={() => selectCategory(null)}
-                  aria-pressed={!activeCategory}
-                  className={`insights-category ${!activeCategory ? "is-active" : ""}`}
+                  onClick={() => setActiveCategory(null)}
+                  aria-pressed={activeCategory === null}
+                  className={`insights-category ${activeCategory === null ? "is-active" : ""}`}
                 >
+                  <span
+                    className="insight-category-dot"
+                    style={{ backgroundColor: "var(--color-accent)" }}
+                    aria-hidden="true"
+                  />
                   All
                 </button>
                 {categories.map((category) => (
                   <button
                     key={category}
                     type="button"
-                    onClick={() => selectCategory(category)}
+                    onClick={() => setActiveCategory(category)}
                     aria-pressed={activeCategory === category}
                     className={`insights-category ${
                       activeCategory === category ? "is-active" : ""
                     }`}
                   >
+                    <span
+                      className="insight-category-dot"
+                      style={{
+                        backgroundColor: insightCategoryDotColor(category),
+                      }}
+                      aria-hidden="true"
+                    />
                     {category}
                   </button>
                 ))}
@@ -101,40 +143,39 @@ export default function InsightsIndex({ insights }: Props) {
             </aside>
           ) : null}
 
-          <section
-            aria-label="Published insights"
-            className={categories.length > 0 ? "lg:col-span-9" : "lg:col-span-12"}
+          <div
+            className={
+              categories.length > 0 ? "insights-main" : "insights-main insights-main--full"
+            }
           >
             {filtered.length > 0 ? (
-              <>
-                {featured ? <FeaturedInsight insight={featured} /> : null}
-
-                {rest.length > 0 ? (
-                  <div className="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 xl:grid-cols-3">
-                    {rest.map((insight) => (
-                      <InsightCard key={insight.slug} insight={insight} />
-                    ))}
-                  </div>
-                ) : null}
-              </>
+              <section aria-label="Published insights" className="insights-grid">
+                {filtered.map((insight) => (
+                  <InsightCard
+                    key={insight.slug}
+                    insight={insight}
+                    isNew={insight.slug === newestSlug}
+                  />
+                ))}
+              </section>
             ) : (
               <div className="max-w-md py-4">
                 <h2 className="text-lg font-medium text-[var(--color-heading)]">
-                  No articles in this category yet
+                  Nothing here yet
                 </h2>
                 <p className="mt-2 text-sm text-[var(--color-muted)]">
-                  Try another category or view all articles.
+                  No articles in this category. Try another filter or view all.
                 </p>
                 <button
                   type="button"
-                  onClick={() => selectCategory(null)}
-                  className="link-accent mt-4 text-sm font-medium"
+                  onClick={() => setActiveCategory(null)}
+                  className="insights-inline-link mt-4 text-sm font-medium"
                 >
-                  Show all articles
+                  View all articles
                 </button>
               </div>
             )}
-          </section>
+          </div>
         </div>
       ) : (
         <div className="mt-12 max-w-xl">
@@ -149,117 +190,66 @@ export default function InsightsIndex({ insights }: Props) {
       )}
 
       <div className="mt-16 border-t border-[var(--color-border)] pt-6">
-        <Link href="/#directory" className="link-row text-sm font-medium">
-          <span className="link-accent">Explore the recovery directory</span>
-          <span className="link-arrow" aria-hidden="true">
-            →
-          </span>
-        </Link>
+        <LinkWithArrow
+          href="/#directory"
+          className="insights-inline-link text-sm font-medium"
+          underlineClassName="link-text-underline"
+        >
+          Explore the recovery directory
+        </LinkWithArrow>
       </div>
     </main>
   );
 }
 
-function InsightMeta({ insight }: { insight: InsightSummary }) {
-  return (
-    <p className="font-meta text-[11px] text-[var(--color-muted)]">
-      <span className="insight-mark" aria-hidden="true" />
-      <span>{insight.category}</span>
-      <span aria-hidden="true"> · </span>
-      <time dateTime={insight.published_at}>
-        {formatPublishedDate(insight.published_at)}
-      </time>
-    </p>
-  );
-}
+function InsightCard({
+  insight,
+  isNew,
+}: {
+  insight: PublicInsightSummary;
+  isNew: boolean;
+}) {
+  const href = `/insights/${insight.slug}`;
+  const label = `Read ${insight.title}`;
 
-function FeaturedInsight({ insight }: { insight: InsightSummary }) {
   return (
-    <article className={insight.cover_image ? "" : "border-t border-[var(--color-ink)] pt-5"}>
-      {insight.cover_image ? (
-        <Link
-          href={`/insights/${insight.slug}`}
-          aria-label={`Read ${insight.title}`}
-          className="block"
-        >
+    <Link href={href} className="insight-card" aria-label={label}>
+      <div className="insight-card__media">
+        {insight.featured_image_url ? (
           <Image
-            src={insight.cover_image}
-            alt={insight.image_alt ?? ""}
-            width={1200}
-            height={675}
-            sizes="(max-width: 1024px) 100vw, 70vw"
-            className="aspect-[16/9] w-full object-cover"
+            src={insight.featured_image_url}
+            alt={insight.featured_image_alt ?? ""}
+            width={640}
+            height={480}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
-        </Link>
-      ) : null}
+        ) : (
+          <div className="insight-card__placeholder" aria-hidden="true" />
+        )}
+      </div>
 
-      <div className={`max-w-2xl ${insight.cover_image ? "mt-5" : ""}`}>
-        <InsightMeta insight={insight} />
-        <h2 className="mt-2 text-[1.35rem] font-medium leading-snug tracking-tight text-[var(--color-heading)] sm:text-[1.65rem]">
-          <Link
-            href={`/insights/${insight.slug}`}
-            className="hover:text-[var(--color-muted)]"
-          >
-            {insight.title}
-          </Link>
-        </h2>
-        <p className="mt-3 text-sm leading-6 text-[var(--color-muted)] sm:text-[0.95rem]">
-          {insight.excerpt}
-        </p>
-        <Link
-          href={`/insights/${insight.slug}`}
-          className="link-row mt-5 text-sm font-medium"
-        >
-          <span className="link-accent">Read article</span>
-          <span className="link-arrow" aria-hidden="true">
-            →
+      <div className="insight-card__body">
+        <p className="insight-card__meta">
+          <span className="insight-card__meta-start">
+            <CategoryLabel category={insight.category} />
           </span>
-        </Link>
-      </div>
-    </article>
-  );
-}
-
-function InsightCard({ insight }: { insight: InsightSummary }) {
-  return (
-    <article>
-      {insight.cover_image ? (
-        <Link
-          href={`/insights/${insight.slug}`}
-          aria-label={`Read ${insight.title}`}
-          className="block"
-        >
-          <Image
-            src={insight.cover_image}
-            alt={insight.image_alt ?? ""}
-            width={800}
-            height={500}
-            sizes="(max-width: 640px) 100vw, 30vw"
-            className="aspect-[4/3] w-full object-cover"
-          />
-        </Link>
-      ) : (
-        <div className="insight-fallback py-0" aria-hidden="true">
-          <span className="mb-3 inline-block h-1.5 w-1.5 bg-[var(--color-accent)]" />
-        </div>
-      )}
-
-      <div className="mt-4 border-t border-[var(--color-ink)] pt-3">
-        <h2 className="text-base font-medium leading-snug tracking-tight text-[var(--color-heading)]">
-          <Link
-            href={`/insights/${insight.slug}`}
-            className="hover:text-[var(--color-muted)]"
-          >
-            {insight.title}
-          </Link>
-        </h2>
-        <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--color-muted)]">
-          {insight.excerpt}
+          <span className="insight-card__date">
+            <time dateTime={insight.published_at}>
+              {formatPublishedDate(insight.published_at)}
+            </time>
+            {isNew ? (
+              <>
+                <span className="insight-card__meta-sep" aria-hidden="true">
+                  ·
+                </span>
+                <span className="insight-card__new">New</span>
+              </>
+            ) : null}
+          </span>
         </p>
-        <div className="mt-3">
-          <InsightMeta insight={insight} />
-        </div>
+        <h2 className="insight-card__title line-clamp-2">{insight.title}</h2>
+        <p className="insight-card__excerpt line-clamp-2">{insight.excerpt}</p>
       </div>
-    </article>
+    </Link>
   );
 }

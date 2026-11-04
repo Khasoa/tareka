@@ -5,6 +5,8 @@ import { Caveat, Outfit } from "next/font/google";
 import CardTransitionGate from "@/components/CardTransitionGate";
 import Footer from "@/components/Footer";
 import HideOnIntro from "@/components/HideOnIntro";
+import { DEFAULT_SITE_DESCRIPTION } from "@/lib/metadata";
+import { getSiteOrigin } from "@/lib/siteOrigin";
 
 import "./globals.css";
 
@@ -18,13 +20,15 @@ const caveat = Caveat({
   subsets: ["latin"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+const siteOrigin = getSiteOrigin();
 
 export const metadata: Metadata = {
-  title: "tareka",
-  description:
-    "Discover where to take your waste — and who's turning it into something new.",
-  ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
+  metadataBase: new URL(siteOrigin),
+  title: {
+    default: "tareka",
+    template: "%s | tareka",
+  },
+  description: DEFAULT_SITE_DESCRIPTION,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

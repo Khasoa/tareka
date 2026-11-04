@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import MaterialsExhibition from "@/components/MaterialsExhibition";
 import DirectoryIntro from "@/components/DirectoryIntro";
 import DirectoryHome from "@/components/DirectoryHome";
+import { HomeJsonLd } from "@/app/homeMetadata";
 import {
   getBusinesses,
   getCounties,
@@ -27,6 +28,8 @@ function first(value: string | string[] | undefined): string {
   if (Array.isArray(value)) return value[0] ?? "";
   return value ?? "";
 }
+
+export { metadata } from "@/app/homeMetadata";
 
 export default async function HomePage({
   searchParams,
@@ -97,6 +100,7 @@ export default async function HomePage({
 
   return (
     <>
+      <HomeJsonLd />
       <Header />
       <div className="directory-page">
         <section className="directory-hero">

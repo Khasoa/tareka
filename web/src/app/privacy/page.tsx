@@ -1,6 +1,16 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import Header from "@/components/Header";
+import { pageMetadata } from "@/lib/metadata";
+import { SITE_CONTACT_EMAIL } from "@/lib/siteConfig";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Privacy Policy",
+  description:
+    "How tareka collects, uses and protects personal information when you use the recovery directory and related services.",
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (
@@ -281,10 +291,10 @@ export default function PrivacyPage() {
             <p className="mt-3">
               If you have a privacy question or request, contact us at{" "}
               <a
-                href="mailto:hello@tareka.directory"
+                href={`mailto:${SITE_CONTACT_EMAIL}`}
                 className="font-medium underline decoration-[var(--color-accent)] decoration-2 underline-offset-2"
               >
-                hello@tareka.directory
+                {SITE_CONTACT_EMAIL}
               </a>
               .
             </p>

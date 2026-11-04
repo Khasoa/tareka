@@ -1,0 +1,60 @@
+[
+  {
+    "filename": "its-not-just-about-waste.mdx",
+    "slug": "its-not-just-about-waste",
+    "status": "dry_run_ready",
+    "message": "Would import as published article (offline dry-run \u2014 no DB conflict check).",
+    "frontmatter": {
+      "title": "The thing is... it's not just about waste",
+      "slug": "its-not-just-about-waste",
+      "excerpt": "A bag of rubbish may leave your doorstep, but that doesn't mean the problem is gone. What happens next can affect the drains we depend on, the water we use, the people who handle our waste and the materials that could have been recovered.",
+      "category": "Foundations",
+      "published_at": "2026-10-31",
+      "seo_title": "Waste Management and Public Health in Kenya",
+      "meta_description": "Explore how poor waste management affects public health in Kenya, from blocked drains and open burning to unsafe disposal and missed recycling opportunities.",
+      "cover_image": null,
+      "image_alt": null
+    },
+    "conversion_notes": [],
+    "unsupported_findings": [],
+    "featured_image": {
+      "source_path": null,
+      "local_file": null,
+      "alt_text": null,
+      "status": "not_configured",
+      "storage_key": null,
+      "public_url": null,
+      "message": "No featured image in frontmatter."
+    },
+    "body_node_count": 117
+  },
+  {
+    "filename": "waste-hierarchy-kenya.mdx",
+    "slug": "waste-hierarchy-kenya",
+    "status": "dry_run_ready",
+    "message": "Would import as published article (offline dry-run \u2014 no DB conflict check).",
+    "frontmatter": {
+      "title": "The Waste Hierarchy and Why It Matters",
+      "slug": "waste-hierarchy-kenya",
+      "excerpt": "Kenya\u2019s waste hierarchy ranks what should happen to waste, from avoidance to safe disposal. What it means at a dumping site, for pickers and in your own bin.",
+      "category": "Foundations",
+      "published_at": "2026-10-23",
+      "seo_title": "The Waste Hierarchy in Kenya: What It Means",
+      "meta_description": "What does Kenya's waste hierarchy mean in practice? Explore the law, waste pickers' livelihoods, recycling, waste separation and safe disposal.",
+      "cover_image": null,
+      "image_alt": null
+    },
+    "conversion_notes": [],
+    "unsupported_findings": [],
+    "featured_image": {
+      "source_path": null,
+      "local_file": null,
+      "alt_text": null,
+      "status": "not_configured",
+      "storage_key": null,
+      "public_url": null,
+      "message": "No featured image in frontmatter."
+    },
+    "body_node_count": 102
+  }
+]
