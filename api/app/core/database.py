@@ -26,6 +26,7 @@ SessionLocal = sessionmaker(
 from app.modules.admin import models as admin_models  # noqa: F401
 from app.modules.claims import models as claims_models  # noqa: F401
 from app.modules.directory import models as directory_models  # noqa: F401
+from app.modules.insights import models as insights_models  # noqa: F401
 from app.modules.suggestions import models as suggestions_models  # noqa: F401
 
 
