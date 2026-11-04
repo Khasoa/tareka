@@ -1,0 +1,28 @@
+[
+  {
+    "filename": "its-not-just-about-waste.mdx",
+    "slug": "its-not-just-about-waste",
+    "featured_image": {
+      "source_path": null,
+      "local_file": null,
+      "alt_text": null,
+      "status": "not_configured",
+      "storage_key": null,
+      "public_url": null,
+      "message": "No featured image in frontmatter."
+    }
+  },
+  {
+    "filename": "waste-hierarchy-kenya.mdx",
+    "slug": "waste-hierarchy-kenya",
+    "featured_image": {
+      "source_path": null,
+      "local_file": null,
+      "alt_text": null,
+      "status": "not_configured",
+      "storage_key": null,
+      "public_url": null,
+      "message": "No featured image in frontmatter."
+    }
+  }
+]

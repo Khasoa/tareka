@@ -1,12 +1,30 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 
 import Header from "@/components/Header";
+import { LinkWithArrow } from "@/components/LinkWithArrow";
 import ClaimForm from "@/components/ClaimForm";
 import { getBusiness } from "@/lib/api";
+import {
+  businessClaimMetadata,
+  businessNotFoundMetadata,
+} from "@/lib/metadata";
 
 type ClaimPageProps = {
   params: Promise<{ slug: string }>;
 };
+
+export async function generateMetadata({
+  params,
+}: ClaimPageProps): Promise<Metadata> {
+  const { slug } = await params;
+
+  try {
+    const business = await getBusiness(slug);
+    return businessClaimMetadata(business);
+  } catch {
+    return businessNotFoundMetadata(slug);
+  }
+}
 
 export default async function ClaimPage({ params }: ClaimPageProps) {
   const { slug } = await params;
@@ -17,12 +35,15 @@ export default async function ClaimPage({ params }: ClaimPageProps) {
       <Header />
 
       <main className="mx-auto w-full max-w-2xl px-6 py-12 sm:py-16">
-        <Link
+        <LinkWithArrow
           href={`/directory/${business.slug}`}
+          arrow="←"
+          arrowPosition="before"
           className="text-sm font-medium text-[var(--color-muted)] transition hover:text-[var(--color-ink)]"
+          underlineClassName="link-accent"
         >
-          ← Back to listing
-        </Link>
+          Back to listing
+        </LinkWithArrow>
 
         <div className="mt-6 border-b border-[var(--color-border)] pb-8">
           <p className="kicker">Business listing</p>

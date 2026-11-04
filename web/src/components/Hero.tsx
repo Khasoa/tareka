@@ -6,8 +6,7 @@ export default function Hero() {
     <section className="hero-surface">
       <div className="hero-canvas">
         <h1 className="sr-only">
-          Recycling is art, science and balance — discover verified recovery
-          businesses in Kenya
+          Discover recycling & recovery businesses in Kenya
         </h1>
 
         <div className="hero-stack" aria-hidden="true">
@@ -20,10 +19,10 @@ export default function Hero() {
           <div className="hero-collage">
             <div className="hero-collage__rings" />
             <div className="hero-collage__photo">
-              {/* swap src for a real photo of someone in your directory */}
+            
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/images/materials/all.png"
+                src="/images/materials/all.webp"
                 alt=""
                 width={353}
                 height={475}
@@ -42,17 +41,8 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* the short arrow, reversed: it now points TO the question */}
+        
         <div className="hero-aside" aria-hidden="true">
-          <svg
-            className="hero-aside__arrow"
-            viewBox="0 0 120 150"
-            fill="none"
-            focusable="false"
-          >
-            <path pathLength={1} d="M18 46 C 74 66, 100 96, 96 146" />
-            <path pathLength={1} d="M109 126 L96 146 L88 128" />
-          </svg>
           <p className="hero-aside__text">what is it to you?</p>
         </div>
 

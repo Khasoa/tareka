@@ -1,6 +1,16 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import Header from "@/components/Header";
+import { pageMetadata } from "@/lib/metadata";
+import { SITE_CONTACT_EMAIL } from "@/lib/siteConfig";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Terms and Conditions",
+  description:
+    "Terms of use for tareka, Kenya's recycling and recovery business directory.",
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (
@@ -285,10 +295,10 @@ export default function TermsPage() {
             <p className="mt-3">
               Questions about these Terms of Use can be sent to{" "}
               <a
-                href="mailto:hello@tareka.directory"
+                href={`mailto:${SITE_CONTACT_EMAIL}`}
                 className="font-medium underline decoration-[var(--color-accent)] decoration-2 underline-offset-2"
               >
-                hello@tareka.directory
+                {SITE_CONTACT_EMAIL}
               </a>
               .
             </p>

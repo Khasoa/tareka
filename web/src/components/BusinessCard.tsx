@@ -79,9 +79,11 @@ export default function BusinessCard({ business }: BusinessCardProps) {
         <Link
           href={`/directory/${business.slug}`}
           aria-label={`View details for ${business.name}`}
-          className="link-row text-sm font-medium outline-none after:absolute after:inset-0 focus-visible:opacity-80"
+          className="link-row business-card-details-link text-sm font-medium not-italic outline-none after:absolute after:inset-0"
         >
-          <span className="link-accent">View details</span>
+          <span className="link-text-underline link-text-underline--ink">
+            View details
+          </span>
           <span className="link-arrow" aria-hidden="true">
             →
           </span>

@@ -23,12 +23,11 @@ Configure these environment variables in `api/.env`:
 | Variable | Purpose |
 |---|---|
 | `DATABASE_URL` | SQLAlchemy database connection URL for PostgreSQL using the installed psycopg driver |
-| `SECRET_KEY` | Private secret used by the application's security/session configuration |
 | `ENVIRONMENT` | Environment name, such as `development` or `production` |
-| `FRONTEND_ORIGIN` | Primary frontend origin allowed by CORS |
-| `CORS_ORIGINS` | Optional comma-separated list of additional allowed browser origins |
+| `FRONTEND_ORIGIN` | Primary frontend origin allowed by CORS and browser Origin validation (exact URL, e.g. `https://tareka.directory`) |
+| `CORS_ORIGINS` | Optional comma-separated list of additional allowed browser origins (exact match) |
 
-Use real local credentials in `.env`, and never commit that file. Keep the production secret strong and private.
+Use real local credentials in `.env`, and never commit that file.
 
 Install dependencies from the locked project configuration:
 
@@ -132,7 +131,7 @@ Set environment variables in the hosting provider rather than committing `.env`.
 
 Before launch:
 
-1. Configure the production PostgreSQL connection and `SECRET_KEY`.
+1. Configure the production PostgreSQL connection, `ENVIRONMENT=production`, and browser origin settings (`FRONTEND_ORIGIN`, optional `CORS_ORIGINS`).
 2. Set `ENVIRONMENT` to the intended production value.
 3. Set `FRONTEND_ORIGIN` to the canonical frontend origin.
 4. Set `CORS_ORIGINS` only to additional origins that genuinely require browser access.

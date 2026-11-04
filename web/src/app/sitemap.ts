@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 
-import { getAllInsights } from "@/lib/insights";
+import { getPublicApiBaseUrl } from "@/lib/apiOrigin";
+import { fetchAllPublishedInsightSummaries } from "@/lib/publicInsightsApi";
+import { getSiteOrigin } from "@/lib/siteOrigin";
 
 export const revalidate = 3600;
 
@@ -13,47 +15,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function getSiteOrigin(): string | null {
-  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-
-  if (!configuredUrl) {
-    return null;
-  }
-
-  try {
-    const url = new URL(configuredUrl);
-
-    if (url.protocol !== "https:" && url.protocol !== "http:") {
-      return null;
-    }
-
-    return url.origin;
-  } catch {
-    return null;
-  }
-}
-
 async function getPublicBusinessSlugs(): Promise<string[]> {
-  const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  const apiUrl = getPublicApiBaseUrl();
 
-  if (!configuredApiUrl) {
-    return [];
-  }
-
-  let apiUrl: string;
-
-  try {
-    const parsedUrl = new URL(configuredApiUrl);
-
-    if (
-      parsedUrl.protocol !== "https:" &&
-      parsedUrl.protocol !== "http:"
-    ) {
-      return [];
-    }
-
-    apiUrl = configuredApiUrl.replace(/\/+$/, "");
-  } catch {
+  if (!apiUrl) {
     return [];
   }
 
@@ -128,10 +93,6 @@ async function getPublicBusinessSlugs(): Promise<string[]> {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteOrigin = getSiteOrigin();
 
-  if (!siteOrigin) {
-    return [];
-  }
-
   const pages: MetadataRoute.Sitemap = [
     { url: siteOrigin, changeFrequency: "weekly", priority: 1 },
     {
@@ -143,6 +104,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${siteOrigin}/insights`,
       changeFrequency: "weekly",
       priority: 0.7,
+    },
+    {
+      url: `${siteOrigin}/intro`,
+      changeFrequency: "monthly",
+      priority: 0.5,
     },
     {
       url: `${siteOrigin}/suggest`,
@@ -161,7 +127,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  for (const insight of getAllInsights()) {
+  const insightArticles = await fetchAllPublishedInsightSummaries({
+    revalidate: 3600,
+  });
+
+  for (const insight of insightArticles) {
     pages.push({
       url: `${siteOrigin}/insights/${insight.slug}`,
       lastModified: new Date(`${insight.published_at}T00:00:00Z`),

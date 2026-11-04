@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: ["main"]
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -57,10 +60,9 @@ jobs:
         run: uv run alembic upgrade head
         env:
           DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/tareka_test
-          SECRET_KEY: test-secret
 
       - name: Run tests
         run: uv run pytest
         env:
           DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/tareka_test
-          SECRET_KEY: test-secret
+          FRONTEND_ORIGIN: http://localhost:3000

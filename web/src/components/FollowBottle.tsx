@@ -44,20 +44,22 @@ export default function FollowBottle() {
         </g>
       </svg>
 
-      <span className="follow-text" aria-hidden="true">
-        follow me
-      </span>
+      <span className="follow-cta">
+        <span className="follow-text" aria-hidden="true">
+          follow me
+        </span>
 
-      <svg
-        className="follow-arrow"
-        viewBox="0 0 44 40"
-        fill="none"
-        focusable="false"
-        aria-hidden="true"
-      >
-        <path pathLength={1} d="M6 4 C 26 2, 38 14, 30 32" />
-        <path pathLength={1} d="M39 25 L30 32 L29 23" />
-      </svg>
+        <svg
+          className="follow-arrow"
+          viewBox="0 0 44 40"
+          fill="none"
+          focusable="false"
+          aria-hidden="true"
+        >
+          <path pathLength={1} d="M6 4 C 26 2, 38 14, 30 32" />
+          <path pathLength={1} d="M39 25 L30 32 L29 23" />
+        </svg>
+      </span>
     </CardLink>
   );
 }

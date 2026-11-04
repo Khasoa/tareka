@@ -10,6 +10,13 @@ from app.core.database import Base, get_db
 from app.core.rate_limit import limiter
 from app.main import app
 from app.modules.directory.models import Business, BusinessBusinessType
+from app.modules.insights import models as _insight_models  # noqa: F401
+
+_MUTATING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
+
+
+def browser_origin() -> str:
+    return os.environ.get("FRONTEND_ORIGIN", settings.frontend_origin).strip()
 
 
 def attach_business_types(business: Business, *types: str) -> Business:
@@ -66,5 +73,16 @@ def client(db_session):
 
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
+        original_request = test_client.request
+
+        def request_with_origin(method: str, url: str, **kwargs):
+            headers = dict(kwargs.pop("headers", None) or {})
+            if method.upper() in _MUTATING_METHODS and "Origin" not in headers:
+                headers["Origin"] = browser_origin()
+            if headers:
+                kwargs["headers"] = headers
+            return original_request(method, url, **kwargs)
+
+        test_client.request = request_with_origin  # type: ignore[method-assign]
         yield test_client
     app.dependency_overrides.clear()

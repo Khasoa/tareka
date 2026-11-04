@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import BusinessCard from "@/components/BusinessCard";
@@ -370,15 +371,23 @@ export default function DirectoryHome({
       )}
 
       {!loading && businesses.length === 0 && !error && (
-        <div className="border-b border-[var(--color-border)] py-12">
+        <div className="directory-empty border-b border-[var(--color-border)] py-6 sm:py-8">
           <h3 className="text-xl font-medium">No matches just yet.</h3>
           <p className="mt-2 text-sm text-[var(--color-muted)]">
             Try another material or broaden your filters.
           </p>
+          <Link href="/suggest" className="link-row mt-3 text-sm font-medium">
+            <span className="link-accent">
+              Know a business that handles this? Suggest one
+            </span>
+            <span className="link-arrow" aria-hidden="true">
+              →
+            </span>
+          </Link>
           <button
             type="button"
             onClick={resetFilters}
-            className="link-accent mt-4 text-sm"
+            className="link-accent mt-4 block text-sm"
           >
             Show all businesses
           </button>

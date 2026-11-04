@@ -1,13 +1,16 @@
 
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import Header from "@/components/Header";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata = {
-  title: "How it works | tareka",
+export const metadata: Metadata = pageMetadata({
+  title: "How It Works",
   description:
     "Learn how tareka verifies recovery businesses, helps people find material recovery options, and handles business claims and content consent.",
-};
+  path: "/how-it-works",
+});
 
 type Step = {
   number: string;

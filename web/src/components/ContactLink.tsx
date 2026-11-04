@@ -1,14 +1,31 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-const EMAIL = "hello@tareka.directory";
+import { SITE_CONTACT_EMAIL } from "@/lib/siteConfig";
+
+const EMAIL = SITE_CONTACT_EMAIL;
+
+function subscribeCoarsePointer(onStoreChange: () => void) {
+  const media = window.matchMedia("(hover: none)");
+  media.addEventListener("change", onStoreChange);
+  return () => media.removeEventListener("change", onStoreChange);
+}
+
+function getCoarsePointerSnapshot() {
+  return window.matchMedia("(hover: none)").matches;
+}
+
+function getCoarsePointerServerSnapshot() {
+  return true;
+}
 
 type CopyStatus = "idle" | "copied" | "failed";
 
 type Props = {
   className?: string;
   showExternalIcon?: boolean;
+  footerTouch?: boolean;
 };
 
 function fallbackCopy(value: string) {
@@ -46,8 +63,16 @@ function writeClipboard(value: string) {
 export default function ContactLink({
   className = "",
   showExternalIcon = false,
+  footerTouch = false,
 }: Props) {
   const [status, setStatus] = useState<CopyStatus>("idle");
+  const [revealed, setRevealed] = useState(false);
+  const coarsePointer = useSyncExternalStore(
+    subscribeCoarsePointer,
+    getCoarsePointerSnapshot,
+    getCoarsePointerServerSnapshot,
+  );
+  const [liveMessage, setLiveMessage] = useState("");
   const resetTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -63,39 +88,113 @@ export default function ContactLink({
     }, 2000);
   }
 
-  async function copyEmail() {
+  const copyEmail = useCallback(async (): Promise<CopyStatus> => {
     try {
       await writeClipboard(EMAIL);
       setStatus("copied");
       scheduleReset();
+      return "copied";
     } catch {
       try {
         fallbackCopy(EMAIL);
         setStatus("copied");
         scheduleReset();
+        return "copied";
       } catch {
         setStatus("failed");
         scheduleReset();
+        return "failed";
       }
     }
+  }, []);
+
+  async function handleFooterTouchActivate() {
+    if (revealed) {
+      return;
+    }
+    setRevealed(true);
+    const result = await copyEmail();
+    setLiveMessage(
+      result === "copied" ? "Email address copied" : "Email address shown",
+    );
   }
 
-  const announcement =
-    status === "copied"
-      ? "Email address copied to clipboard"
-      : status === "failed"
-        ? `Could not copy. The email is ${EMAIL}`
-        : "";
+  async function handleDefaultClick() {
+    const result = await copyEmail();
+    setLiveMessage(
+      result === "copied"
+        ? "Email address copied"
+        : result === "failed"
+          ? `Could not copy. The email is ${EMAIL}`
+          : "",
+    );
+  }
+
+  const footerClass = footerTouch ? "contact-link--footer" : "";
+  const showEmailInDom = !footerTouch || (footerTouch && !coarsePointer);
+  const footerTouchMode = footerTouch && coarsePointer;
+
+  if (footerTouchMode && revealed) {
+    return (
+      <span
+        className={`contact-copy contact-copy--revealed ${className}`.trim()}
+        data-copy-status={status}
+      >
+        <a
+          href={`mailto:${EMAIL}`}
+          className={`contact-link ${footerClass} contact-link--revealed inline-flex min-h-11 items-center text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]`}
+        >
+          {EMAIL}
+        </a>
+        {status === "copied" ? (
+          <span
+            className="contact-copy__status contact-copy__status--inline"
+            aria-hidden="true"
+          >
+            Copied
+          </span>
+        ) : null}
+        <span className="sr-only" aria-live="polite">
+          {liveMessage}
+        </span>
+      </span>
+    );
+  }
 
   return (
     <span className={`contact-copy ${className}`.trim()} data-copy-status={status}>
       <button
         type="button"
         onClick={() => {
-          void copyEmail();
+          if (footerTouchMode) {
+            void handleFooterTouchActivate();
+          } else {
+            void handleDefaultClick();
+          }
         }}
-        aria-label={`Copy email address ${EMAIL}`}
-        className="contact-link text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+        onKeyDown={(event) => {
+          if (
+            footerTouch &&
+            !coarsePointer &&
+            (event.key === "Enter" || event.key === " ")
+          ) {
+            setRevealed(true);
+            setLiveMessage("Email address shown");
+          }
+        }}
+        onFocus={
+          footerTouch && !coarsePointer
+            ? () => {
+                setRevealed(true);
+                setLiveMessage("Email address shown");
+              }
+            : undefined
+        }
+        aria-label={
+          footerTouchMode ? "Show contact email" : `Copy email address ${EMAIL}`
+        }
+        aria-expanded={footerTouch ? revealed : undefined}
+        className={`contact-link contact-link--tap ${footerClass} inline-flex min-h-11 min-w-11 items-center justify-center text-[var(--color-ink)] transition-colors hover:text-[var(--color-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]`}
       >
         <span className="contact-link__label">
           Contact
@@ -106,22 +205,30 @@ export default function ContactLink({
             </>
           ) : null}
         </span>
-        <span className="contact-link__email">{EMAIL}</span>
+        {showEmailInDom ? (
+          <span className="contact-link__email">{EMAIL}</span>
+        ) : null}
       </button>
 
       <span className="sr-only" aria-live="polite">
-        {announcement}
+        {liveMessage}
       </span>
 
-      {status === "copied" ? (
-        <span className="contact-copy__status" aria-hidden="true">
-          Copied!
+      {!footerTouch && status === "failed" ? (
+        <span className="contact-copy__status contact-copy__status--failed">
+          Couldn&apos;t copy
         </span>
       ) : null}
 
-      {status === "failed" ? (
-        <span className="contact-copy__status contact-copy__status--failed">
-          Couldn&apos;t copy
+      {status === "copied" &&
+      !(footerTouch && coarsePointer && revealed) ? (
+        <span
+          className={`contact-copy__status${
+            footerTouch && coarsePointer ? " contact-copy__status--inline" : ""
+          }`}
+          aria-hidden={footerTouch ? undefined : true}
+        >
+          {footerTouch ? "Copied" : "Copied!"}
         </span>
       ) : null}
     </span>

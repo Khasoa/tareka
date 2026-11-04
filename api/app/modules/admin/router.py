@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -155,15 +155,17 @@ def logout(
     response: Response,
     db: DbSession,
     admin: AdminUser = Depends(require_admin),
+    tareka_session: str | None = Cookie(default=None),
 ) -> dict[str, str]:
-    sessions = db.scalars(
-        select(AdminSession).where(AdminSession.admin_id == admin.id)
-    ).all()
+    if tareka_session:
+        token_hash = hash_session_token(tareka_session)
+        session = db.scalar(
+            select(AdminSession).where(AdminSession.token_hash == token_hash)
+        )
+        if session is not None and session.admin_id == admin.id:
+            db.delete(session)
+            db.commit()
 
-    for session in sessions:
-        db.delete(session)
-
-    db.commit()
     response.delete_cookie(
         key="tareka_session",
         path="/",

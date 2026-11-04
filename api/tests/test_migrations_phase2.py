@@ -537,6 +537,9 @@ def test_phase2_migrations_round_trip(disposable_database: URL):
         )
         assert _related_record_counts(conn) == expected_counts
 
+    # Remaining revisions after Phase 2 (e.g. Insights CMS) must be applied
+    # before comparing the live schema to Base.metadata.
+    _run_alembic("upgrade", "head", disposable_url=disposable_database)
     _assert_schema_matches_models(disposable_database)
 
     engine.dispose()
